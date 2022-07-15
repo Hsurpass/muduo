@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# set是把命令打印到屏幕， set -x:开启, set +x:关闭, set -o是查看 (xtrace)，set去追中一段代码的显示情况。
+# 执行set -x后，对整个脚本有效。
 set -x
 
 SOURCE_DIR=`pwd`

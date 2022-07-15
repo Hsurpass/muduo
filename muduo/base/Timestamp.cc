@@ -16,8 +16,7 @@
 
 using namespace muduo;
 
-static_assert(sizeof(Timestamp) == sizeof(int64_t),
-              "Timestamp should be same size as int64_t");
+static_assert(sizeof(Timestamp) == sizeof(int64_t), "Timestamp should be same size as int64_t");
 
 string Timestamp::toString() const
 {
@@ -59,4 +58,3 @@ Timestamp Timestamp::now()
   int64_t seconds = tv.tv_sec;
   return Timestamp(seconds * kMicroSecondsPerSecond + tv.tv_usec);
 }
-
