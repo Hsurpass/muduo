@@ -17,9 +17,9 @@
 // Enable thread safety attributes only with clang.
 // The attributes can be safely erased when compiling with other compilers.
 #if defined(__clang__) && (!defined(SWIG))
-#define THREAD_ANNOTATION_ATTRIBUTE__(x)   __attribute__((x))
+#define THREAD_ANNOTATION_ATTRIBUTE__(x) __attribute__((x))
 #else
-#define THREAD_ANNOTATION_ATTRIBUTE__(x)   // no-op
+#define THREAD_ANNOTATION_ATTRIBUTE__(x) // no-op
 #endif
 
 #define CAPABILITY(x) \
@@ -85,149 +85,152 @@
 
 #ifdef NDEBUG
 __BEGIN_DECLS
-extern void __assert_perror_fail (int errnum,
-                                  const char *file,
-                                  unsigned int line,
-                                  const char *function)
-    noexcept __attribute__ ((__noreturn__));
+extern void __assert_perror_fail(int errnum,
+                                 const char *file,
+                                 unsigned int line,
+                                 const char *function) noexcept __attribute__((__noreturn__));
 __END_DECLS
 #endif
 
-#define MCHECK(ret) ({ __typeof__ (ret) errnum = (ret);         \
-                       if (__builtin_expect(errnum != 0, 0))    \
-                         __assert_perror_fail (errnum, __FILE__, __LINE__, __func__);})
+#define MCHECK(ret) (                                               \
+    {                                                               \
+      __typeof__(ret) errnum = (ret);                               \
+      if (__builtin_expect(errnum != 0, 0))                         \
+        __assert_perror_fail(errnum, __FILE__, __LINE__, __func__); \
+    })
 
-#else  // CHECK_PTHREAD_RETURN_VALUE
+#else // CHECK_PTHREAD_RETURN_VALUE
 
-#define MCHECK(ret) ({ __typeof__ (ret) errnum = (ret);         \
-                       assert(errnum == 0); (void) errnum;})
+#define MCHECK(ret) (                 \
+    {                                 \
+      __typeof__(ret) errnum = (ret); \
+      assert(errnum == 0);            \
+      (void)errnum;                   \
+    })
 
 #endif // CHECK_PTHREAD_RETURN_VALUE
 
 namespace muduo
 {
 
-// Use as data member of a class, eg.
-//
-// class Foo
-// {
-//  public:
-//   int size() const;
-//
-//  private:
-//   mutable MutexLock mutex_;
-//   std::vector<int> data_ GUARDED_BY(mutex_);
-// };
-class CAPABILITY("mutex") MutexLock : noncopyable
-{
- public:
-  MutexLock()
-    : holder_(0)
+  // Use as data member of a class, eg.
+  //
+  // class Foo
+  // {
+  //  public:
+  //   int size() const;
+  //
+  //  private:
+  //   mutable MutexLock mutex_;
+  //   std::vector<int> data_ GUARDED_BY(mutex_);
+  // };
+  class CAPABILITY("mutex") MutexLock : noncopyable
   {
-    MCHECK(pthread_mutex_init(&mutex_, NULL));
-  }
-
-  ~MutexLock()
-  {
-    assert(holder_ == 0);
-    MCHECK(pthread_mutex_destroy(&mutex_));
-  }
-
-  // must be called when locked, i.e. for assertion
-  bool isLockedByThisThread() const
-  {
-    return holder_ == CurrentThread::tid();
-  }
-
-  void assertLocked() const ASSERT_CAPABILITY(this)
-  {
-    assert(isLockedByThisThread());
-  }
-
-  // internal usage
-
-  void lock() ACQUIRE()
-  {
-    MCHECK(pthread_mutex_lock(&mutex_));
-    assignHolder();
-  }
-
-  void unlock() RELEASE()
-  {
-    unassignHolder();
-    MCHECK(pthread_mutex_unlock(&mutex_));
-  }
-
-  pthread_mutex_t* getPthreadMutex() /* non-const */
-  {
-    return &mutex_;
-  }
-
- private:
-  friend class Condition;
-
-  class UnassignGuard : noncopyable
-  {
-   public:
-    explicit UnassignGuard(MutexLock& owner)
-      : owner_(owner)
+  public:
+    MutexLock() : holder_(0)
     {
-      owner_.unassignHolder();
+      MCHECK(pthread_mutex_init(&mutex_, NULL));
     }
 
-    ~UnassignGuard()
+    ~MutexLock()
     {
-      owner_.assignHolder();
+      assert(holder_ == 0);
+      MCHECK(pthread_mutex_destroy(&mutex_));
     }
 
-   private:
-    MutexLock& owner_;
+    // must be called when locked, i.e. for assertion
+    bool isLockedByThisThread() const
+    {
+      return holder_ == CurrentThread::tid();
+    }
+
+    void assertLocked() const ASSERT_CAPABILITY(this)
+    {
+      assert(isLockedByThisThread());
+    }
+
+    // internal usage
+    void lock() ACQUIRE()
+    {
+      MCHECK(pthread_mutex_lock(&mutex_));
+      assignHolder();
+    }
+
+    void unlock() RELEASE()
+    {
+      unassignHolder();
+      MCHECK(pthread_mutex_unlock(&mutex_));
+    }
+
+    pthread_mutex_t *getPthreadMutex() /* non-const */
+    {
+      return &mutex_;
+    }
+
+  private:
+    friend class Condition;
+
+    class UnassignGuard : noncopyable
+    {
+    public:
+      explicit UnassignGuard(MutexLock &owner)
+          : owner_(owner)
+      {
+        owner_.unassignHolder();
+      }
+
+      ~UnassignGuard()
+      {
+        owner_.assignHolder();
+      }
+
+    private:
+      MutexLock &owner_;
+    };
+
+    void unassignHolder()
+    {
+      holder_ = 0;
+    }
+
+    void assignHolder()
+    {
+      holder_ = CurrentThread::tid();
+    }
+
+    pthread_mutex_t mutex_;
+    pid_t holder_;
   };
 
-  void unassignHolder()
+  // Use as a stack variable, eg.
+  // int Foo::size() const
+  // {
+  //   MutexLockGuard lock(mutex_);
+  //   return data_.size();
+  // }
+  class SCOPED_CAPABILITY MutexLockGuard : noncopyable
   {
-    holder_ = 0;
-  }
+  public:
+    explicit MutexLockGuard(MutexLock &mutex) ACQUIRE(mutex)
+        : mutex_(mutex)
+    {
+      mutex_.lock();
+    }
 
-  void assignHolder()
-  {
-    holder_ = CurrentThread::tid();
-  }
+    ~MutexLockGuard() RELEASE()
+    {
+      mutex_.unlock();
+    }
 
-  pthread_mutex_t mutex_;
-  pid_t holder_;
-};
+  private:
+    MutexLock &mutex_;
+  };
 
-// Use as a stack variable, eg.
-// int Foo::size() const
-// {
-//   MutexLockGuard lock(mutex_);
-//   return data_.size();
-// }
-class SCOPED_CAPABILITY MutexLockGuard : noncopyable
-{
- public:
-  explicit MutexLockGuard(MutexLock& mutex) ACQUIRE(mutex)
-    : mutex_(mutex)
-  {
-    mutex_.lock();
-  }
-
-  ~MutexLockGuard() RELEASE()
-  {
-    mutex_.unlock();
-  }
-
- private:
-
-  MutexLock& mutex_;
-};
-
-}  // namespace muduo
+} // namespace muduo
 
 // Prevent misuse like:
 // MutexLockGuard(mutex_);
 // A tempory object doesn't hold the lock for long!
 #define MutexLockGuard(x) error "Missing guard object name"
 
-#endif  // MUDUO_BASE_MUTEX_H
+#endif // MUDUO_BASE_MUTEX_H
