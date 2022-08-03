@@ -11,30 +11,30 @@
 
 using namespace muduo;
 
-AsyncLogging::AsyncLogging(const string& basename,
+AsyncLogging::AsyncLogging(const string &basename,
                            off_t rollSize,
                            int flushInterval)
-  : flushInterval_(flushInterval),
-    running_(false),
-    basename_(basename),
-    rollSize_(rollSize),
-    thread_(std::bind(&AsyncLogging::threadFunc, this), "Logging"),
-    latch_(1),
-    mutex_(),
-    cond_(mutex_),
-    currentBuffer_(new Buffer),
-    nextBuffer_(new Buffer),
-    buffers_()
+    : flushInterval_(flushInterval),
+      running_(false),
+      basename_(basename),
+      rollSize_(rollSize),
+      thread_(std::bind(&AsyncLogging::threadFunc, this), "Logging"),
+      latch_(1),
+      mutex_(),
+      cond_(mutex_),
+      currentBuffer_(new Buffer),
+      nextBuffer_(new Buffer),
+      buffers_()
 {
   currentBuffer_->bzero();
   nextBuffer_->bzero();
   buffers_.reserve(16);
 }
 
-void AsyncLogging::append(const char* logline, int len)
+void AsyncLogging::append(const char *logline, int len)
 {
   muduo::MutexLockGuard lock(mutex_);
-  if (currentBuffer_->avail() > len)
+  if (currentBuffer_->avail() > len)  // 如果当前缓冲剩余的空间足够大，则会把日志直接追加到缓冲中
   {
     currentBuffer_->append(logline, len);
   }
@@ -48,7 +48,7 @@ void AsyncLogging::append(const char* logline, int len)
     }
     else
     {
-      currentBuffer_.reset(new Buffer); // Rarely happens
+      currentBuffer_.reset(new Buffer); // Rarely happens 很少发生
     }
     currentBuffer_->append(logline, len);
     cond_.notify();
@@ -74,13 +74,13 @@ void AsyncLogging::threadFunc()
 
     {
       muduo::MutexLockGuard lock(mutex_);
-      if (buffers_.empty())  // unusual usage!
+      if (buffers_.empty()) // unusual usage! // 不寻常的使用
       {
         cond_.waitForSeconds(flushInterval_);
       }
       buffers_.push_back(std::move(currentBuffer_));
       currentBuffer_ = std::move(newBuffer1);
-      buffersToWrite.swap(buffers_);
+      buffersToWrite.swap(buffers_);  // 内部指针交换，而非复制
       if (!nextBuffer_)
       {
         nextBuffer_ = std::move(newBuffer2);
@@ -94,13 +94,13 @@ void AsyncLogging::threadFunc()
       char buf[256];
       snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger buffers\n",
                Timestamp::now().toFormattedString().c_str(),
-               buffersToWrite.size()-2);
+               buffersToWrite.size() - 2);
       fputs(buf, stderr);
       output.append(buf, static_cast<int>(strlen(buf)));
-      buffersToWrite.erase(buffersToWrite.begin()+2, buffersToWrite.end());
+      buffersToWrite.erase(buffersToWrite.begin() + 2, buffersToWrite.end());
     }
 
-    for (const auto& buffer : buffersToWrite)
+    for (const auto &buffer : buffersToWrite)
     {
       // FIXME: use unbuffered stdio FILE ? or use ::writev ?
       output.append(buffer->data(), buffer->length());
@@ -133,4 +133,3 @@ void AsyncLogging::threadFunc()
   }
   output.flush();
 }
-

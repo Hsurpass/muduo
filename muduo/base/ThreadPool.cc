@@ -12,13 +12,13 @@
 
 using namespace muduo;
 
-ThreadPool::ThreadPool(const string& nameArg)
-  : mutex_(),
-    notEmpty_(mutex_),
-    notFull_(mutex_),
-    name_(nameArg),
-    maxQueueSize_(0),
-    running_(false)
+ThreadPool::ThreadPool(const string &nameArg)
+    : mutex_(),
+      notEmpty_(mutex_),
+      notFull_(mutex_),
+      name_(nameArg),
+      maxQueueSize_(0),
+      running_(false)
 {
 }
 
@@ -38,9 +38,9 @@ void ThreadPool::start(int numThreads)
   for (int i = 0; i < numThreads; ++i)
   {
     char id[32];
-    snprintf(id, sizeof id, "%d", i+1);
+    snprintf(id, sizeof id, "%d", i + 1);
     threads_.emplace_back(new muduo::Thread(
-          std::bind(&ThreadPool::runInThread, this), name_+id));
+        std::bind(&ThreadPool::runInThread, this), name_ + id));
     threads_[i]->start();
   }
   if (numThreads == 0 && threadInitCallback_)
@@ -52,12 +52,12 @@ void ThreadPool::start(int numThreads)
 void ThreadPool::stop()
 {
   {
-  MutexLockGuard lock(mutex_);
-  running_ = false;
-  notEmpty_.notifyAll();
-  notFull_.notifyAll();
+    MutexLockGuard lock(mutex_);
+    running_ = false;
+    notEmpty_.notifyAll();
+    notFull_.notifyAll();
   }
-  for (auto& thr : threads_)
+  for (auto &thr : threads_)
   {
     thr->join();
   }
@@ -82,7 +82,8 @@ void ThreadPool::run(Task task)
     {
       notFull_.wait();
     }
-    if (!running_) return;
+    if (!running_)
+      return;
     assert(!isFull());
 
     queue_.push_back(std::move(task));
@@ -134,14 +135,14 @@ void ThreadPool::runInThread()
       }
     }
   }
-  catch (const Exception& ex)
+  catch (const Exception &ex)
   {
     fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
     fprintf(stderr, "reason: %s\n", ex.what());
     fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
     abort();
   }
-  catch (const std::exception& ex)
+  catch (const std::exception &ex)
   {
     fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
     fprintf(stderr, "reason: %s\n", ex.what());
@@ -153,4 +154,3 @@ void ThreadPool::runInThread()
     throw; // rethrow
   }
 }
-
