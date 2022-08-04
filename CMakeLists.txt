@@ -8,10 +8,12 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
+MESSAGE(STATUS **************${CMAKE_PROJECT_NAME})
 # only build examples if this is the main project
 if(CMAKE_PROJECT_NAME STREQUAL "muduo")
   option(MUDUO_BUILD_EXAMPLES "Build Muduo examples" ON)
 endif()
+message(STATUS ***********MUDUO_BUILD_EXAMPLES:${MUDUO_BUILD_EXAMPLES})
 
 set(CXX_FLAGS
  -g
@@ -96,8 +98,9 @@ if(THRIFT_COMPILER AND THRIFT_INCLUDE_DIR AND THRIFT_LIBRARY)
   message(STATUS "found thrift")
 endif()
 
+message(STATUS **************${Boost_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
-
+MESSAGE(STATUS ************${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
@@ -106,12 +109,12 @@ message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_T
 add_subdirectory(muduo/base)
 add_subdirectory(muduo/net)
 
-if(MUDUO_BUILD_EXAMPLES)
-  add_subdirectory(contrib)
-  add_subdirectory(examples)
-else()
-  if(CARES_INCLUDE_DIR AND CARES_LIBRARY)
-    add_subdirectory(examples/cdns)
-  endif()
-endif()
+# if(MUDUO_BUILD_EXAMPLES)
+#   add_subdirectory(contrib)
+#   add_subdirectory(examples)
+# else()
+#   if(CARES_INCLUDE_DIR AND CARES_LIBRARY)
+#     add_subdirectory(examples/cdns)
+#   endif()
+# endif()
 

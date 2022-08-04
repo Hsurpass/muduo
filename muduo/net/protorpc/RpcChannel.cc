@@ -103,7 +103,8 @@ void RpcChannel::onRpcMessage(const TcpConnectionPtr& conn,
     if (out.response)
     {
       std::unique_ptr<google::protobuf::Message> d(out.response);
-      if (message.has_response())
+      // if (message.has_response())
+      if (!message.response().empty())
       {
         out.response->ParseFromString(message.response());
       }

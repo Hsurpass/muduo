@@ -27,6 +27,7 @@ set(net_SRCS
   TimerQueue.cc
   )
 
+message(STATUS *******net_SRCS:${net_SRCS})
 add_library(muduo_net ${net_SRCS})
 target_link_libraries(muduo_net muduo_base)
 

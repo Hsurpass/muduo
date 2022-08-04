@@ -16,6 +16,7 @@ set(base_SRCS
   TimeZone.cc
   )
 
+message(STATUS *******base_SRCS:${base_SRCS})
 add_library(muduo_base ${base_SRCS})
 target_link_libraries(muduo_base pthread rt)
 
