@@ -18,6 +18,7 @@ using namespace muduo;
 
 static_assert(sizeof(Timestamp) == sizeof(int64_t), "Timestamp should be same size as int64_t");
 
+// PRId64是可移植的，32位系统下是%lld, 64位系统下是%ld
 string Timestamp::toString() const
 {
   char buf[32] = {0};
@@ -32,7 +33,7 @@ string Timestamp::toFormattedString(bool showMicroseconds) const
   char buf[64] = {0};
   time_t seconds = static_cast<time_t>(microSecondsSinceEpoch_ / kMicroSecondsPerSecond);
   struct tm tm_time;
-  gmtime_r(&seconds, &tm_time);
+  gmtime_r(&seconds, &tm_time); // _r线程安全
 
   if (showMicroseconds)
   {

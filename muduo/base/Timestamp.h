@@ -86,12 +86,12 @@ namespace muduo
     int64_t microSecondsSinceEpoch_;
   };
 
-  inline bool operator<(Timestamp lhs, Timestamp rhs)
+  inline bool operator<(const Timestamp& lhs, const Timestamp& rhs)
   {
     return lhs.microSecondsSinceEpoch() < rhs.microSecondsSinceEpoch();
   }
 
-  inline bool operator==(Timestamp lhs, Timestamp rhs)
+  inline bool operator==(const Timestamp& lhs, const Timestamp& rhs)
   {
     return lhs.microSecondsSinceEpoch() == rhs.microSecondsSinceEpoch();
   }
