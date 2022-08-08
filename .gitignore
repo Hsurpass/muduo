@@ -4,3 +4,4 @@ compile_commands.json
 build
 *pb.cc
 *pb.h
+a.out

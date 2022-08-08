@@ -44,6 +44,7 @@ namespace muduo
 
     void swap(Timestamp &that)
     {
+      // swap 参数是引用
       std::swap(microSecondsSinceEpoch_, that.microSecondsSinceEpoch_);
     }
 
