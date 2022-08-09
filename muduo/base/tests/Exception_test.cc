@@ -9,19 +9,29 @@ class Bar
  public:
   void test(std::vector<std::string> names = {})
   {
+    #if 0
     printf("Stack:\n%s\n", muduo::CurrentThread::stackTrace(true).c_str());
+    #endif 
+
+    #if 0
     [] {
       printf("Stack inside lambda:\n%s\n", muduo::CurrentThread::stackTrace(true).c_str());
     }();
+    #endif
+
+    #if 0
     std::function<void()> func([] {
       printf("Stack inside std::function:\n%s\n", muduo::CurrentThread::stackTrace(true).c_str());
     });
     func();
+    #endif
 
-    func = std::bind(&Bar::callback, this);
+    #if 1
+    auto func = std::bind(&Bar::callback, this);
     func();
+    #endif
 
-    throw muduo::Exception("oops");
+    throw muduo::Exception("oops"); // call Exception constructor
   }
 
  private:

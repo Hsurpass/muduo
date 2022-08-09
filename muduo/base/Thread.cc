@@ -22,7 +22,7 @@ namespace muduo
 {
   namespace detail
   {
-
+    // LWP 轻量级进程
     pid_t gettid()
     {
       return static_cast<pid_t>(::syscall(SYS_gettid));

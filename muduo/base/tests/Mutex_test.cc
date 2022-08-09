@@ -11,7 +11,7 @@ using namespace std;
 
 MutexLock g_mutex;
 vector<int> g_vec;
-const int kCount = 10*1000*1000;
+const int kCount = 10 * 1000 * 1000;
 
 void threadFunc()
 {
@@ -22,7 +22,7 @@ void threadFunc()
   }
 }
 
-int foo() __attribute__ ((noinline));
+int foo() __attribute__((noinline));
 
 int g_count = 0;
 int foo()
@@ -83,4 +83,3 @@ int main()
     printf("%d thread(s) with lock %f\n", nthreads, timeDifference(Timestamp::now(), start));
   }
 }
-

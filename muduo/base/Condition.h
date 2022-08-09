@@ -16,8 +16,7 @@ namespace muduo
   class Condition : noncopyable
   {
   public:
-    explicit Condition(MutexLock &mutex)
-        : mutex_(mutex)
+    explicit Condition(MutexLock &mutex) : mutex_(mutex)
     {
       MCHECK(pthread_cond_init(&pcond_, NULL));
     }

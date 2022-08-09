@@ -230,7 +230,7 @@ namespace muduo
 
 // Prevent misuse like:
 // MutexLockGuard(mutex_);
-// A tempory object doesn't hold the lock for long!
+// A tempory object doesn't hold the lock for long! // 临时对象不应该持有锁
 #define MutexLockGuard(x) error "Missing guard object name"
 
 #endif // MUDUO_BASE_MUTEX_H
