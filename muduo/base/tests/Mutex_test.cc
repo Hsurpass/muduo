@@ -44,6 +44,7 @@ int main()
   printf("sizeof Mutex: %zd\n", sizeof(MutexLock));
   printf("sizeof pthread_cond_t: %zd\n", sizeof(pthread_cond_t));
   printf("sizeof Condition: %zd\n", sizeof(Condition));
+
   MCHECK(foo());
   if (g_count != 1)
   {
@@ -70,6 +71,7 @@ int main()
   {
     std::vector<std::unique_ptr<Thread>> threads;
     g_vec.clear();
+    
     start = Timestamp::now();
     for (int i = 0; i < nthreads; ++i)
     {

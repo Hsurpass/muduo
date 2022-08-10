@@ -31,6 +31,7 @@ void CountDownLatch::countDown()
   }
 }
 
+// const 成员函数可以改变mutable变量的状态，非mutable的状态不能改变
 int CountDownLatch::getCount() const
 {
   MutexLockGuard lock(mutex_);
