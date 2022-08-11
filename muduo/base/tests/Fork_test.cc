@@ -6,7 +6,7 @@
 
 namespace
 {
-__thread int x = 0;
+  __thread int x = 0; // __thread是进程共享的，当fork之后会复制之前的值
 }
 
 void print()
@@ -14,33 +14,42 @@ void print()
   printf("pid=%d tid=%d x=%d\n", getpid(), muduo::CurrentThread::tid(), x);
 }
 
+//        fork
+//      /      /
+//   parent   child
+//            /   /
+//        child  grandchild
+
 int main()
 {
   printf("parent %d\n", getpid());
-  print();
-  x = 1;
-  print();
-  pid_t p = fork();
+  print();  // x == 0
 
+  x = 1;
+  print();  // x == 1
+
+  pid_t p = fork();
   if (p == 0)
   {
     printf("chlid %d\n", getpid());
     // child
-    print();
+    print();  // x == 1
+
     x = 2;
-    print();
+    print();  // x == 2
 
     if (fork() == 0)
     {
-      printf("grandchlid %d\n", getpid());
-      print();
+      printf("grandchlid %d\n", getpid()); 
+
+      print();  // x == 2
       x = 3;
-      print();
+      print();  // x == 3
     }
   }
   else
   {
     // parent
-    print();
+    print();  // x == 1
   }
 }
