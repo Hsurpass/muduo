@@ -28,6 +28,7 @@ void threadFunc2(muduo::Timestamp start)
 {
   muduo::Timestamp now(muduo::Timestamp::now());
   int delay = static_cast<int>(timeDifference(now, start) * 1000000);
+  
   muduo::MutexLockGuard lock(g_mutex);
   ++g_delays[delay];
 }
@@ -72,7 +73,8 @@ class Bench
       snprintf(name, sizeof name, "work thread %d", i);
       threads_.emplace_back(new muduo::Thread(
             [this] { threadFunc(); },
-            muduo::string(name)));
+            muduo::string(name)
+            ));
     }
   }
 
@@ -112,15 +114,14 @@ class Bench
     }
 
     muduo::Timestamp t2 = muduo::Timestamp::now();
-    printf("all %zd threads joined, %.3fms\n",
-           threads_.size(), 1e3 * timeDifference(t2, stop));
+    printf("[Stop] all %zd threads joined, %.3fms\n", threads_.size(), 1e3 * timeDifference(t2, stop));
     TimestampQueue::queue_type queue = done_.drain();
     if (g_verbose)
     {
       // for (const auto& [tid, ts] : queue)
       for (const auto& e : queue)
       {
-        printf("thread %d, %.0f us\n", e.first, timeDifference(e.second, stop) * 1e6);
+        printf("[Stop] thread %d, %.0f us\n", e.first, timeDifference(e.second, stop) * 1e6);
       }
     }
   }
@@ -144,12 +145,11 @@ class Bench
 int main(int argc, char* argv[])
 {
   g_verbose = argc > 1;
-  printf("pid=%d, tid=%d, verbose=%d\n",
-         ::getpid(), muduo::CurrentThread::tid(), g_verbose);
+  printf("[main] pid=%d, tid=%d, verbose=%d\n", ::getpid(), muduo::CurrentThread::tid(), g_verbose);
   muduo::Timestamp start(muduo::Timestamp::now());
 
   int kThreads = 100*1000;
-  printf("Creating %d threads in serial\n", kThreads);
+  printf("[main] Creating %d threads in serial\n", kThreads);
   for (int i = 0; i < kThreads; ++i)
   {
     muduo::Thread t1(threadFunc);
@@ -158,10 +158,8 @@ int main(int argc, char* argv[])
   }
 
   double timeUsed = timeDifference(muduo::Timestamp::now(), start);
-  printf("elapsed %.3f seconds, thread creation time %.3f us\n", timeUsed,
-         timeUsed*1e6/kThreads);
-  printf("number of created threads %d, g_count = %d\n",
-         muduo::Thread::numCreated(), g_count.get());
+  printf("elapsed %.3f seconds, thread creation time %.3f us\n", timeUsed, timeUsed*1e6/kThreads);
+  printf("number of created threads %d, g_count = %d\n", muduo::Thread::numCreated(), g_count.get());
 
   for (int i = 0; i < kThreads; ++i)
   {
@@ -176,8 +174,7 @@ int main(int argc, char* argv[])
     muduo::MutexLockGuard lock(g_mutex);
     for (const auto& delay : g_delays)
     {
-      printf("delay = %d, count = %d\n",
-             delay.first, delay.second);
+      printf("delay = %d, count = %d\n", delay.first, delay.second);
     }
   }
 

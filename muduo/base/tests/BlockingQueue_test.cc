@@ -10,18 +10,17 @@
 
 class Test
 {
- public:
-  Test(int numThreads)
-    : latch_(numThreads)
+public:
+  Test(int numThreads) : latch_(numThreads)
   {
     for (int i = 0; i < numThreads; ++i)
     {
       char name[32];
       snprintf(name, sizeof name, "work thread %d", i);
       threads_.emplace_back(new muduo::Thread(
-            std::bind(&Test::threadFunc, this), muduo::string(name)));
+          std::bind(&Test::threadFunc, this), muduo::string(name)));
     }
-    for (auto& thr : threads_)
+    for (auto &thr : threads_)
     {
       thr->start();
     }
@@ -29,15 +28,15 @@ class Test
 
   void run(int times)
   {
-    printf("waiting for count down latch\n");
+    printf("[run] waiting for count down latch\n");
     latch_.wait();
-    printf("all threads started\n");
+    printf("[run] all threads started\n");
     for (int i = 0; i < times; ++i)
     {
       char buf[32];
       snprintf(buf, sizeof buf, "hello %d", i);
       queue_.put(buf);
-      printf("tid=%d, put data = %s, size = %zd\n", muduo::CurrentThread::tid(), buf, queue_.size());
+      printf("[run] tid=%d, put data = %s, size = %zd\n", muduo::CurrentThread::tid(), buf, queue_.size());
     }
   }
 
@@ -48,32 +47,27 @@ class Test
       queue_.put("stop");
     }
 
-    for (auto& thr : threads_)
+    for (auto &thr : threads_)
     {
       thr->join();
     }
   }
 
- private:
-
+private:
   void threadFunc()
   {
-    printf("tid=%d, %s started\n",
-           muduo::CurrentThread::tid(),
-           muduo::CurrentThread::name());
+    printf("[threadFunc] tid=%d, %s started\n", muduo::CurrentThread::tid(), muduo::CurrentThread::name());
 
     latch_.countDown();
     bool running = true;
     while (running)
     {
       std::string d(queue_.take());
-      printf("tid=%d, get data = %s, size = %zd\n", muduo::CurrentThread::tid(), d.c_str(), queue_.size());
+      printf("[threadFunc] tid=%d, get data = %s, size = %zd\n", muduo::CurrentThread::tid(), d.c_str(), queue_.size());
       running = (d != "stop");
     }
 
-    printf("tid=%d, %s stopped\n",
-           muduo::CurrentThread::tid(),
-           muduo::CurrentThread::name());
+    printf("[threadFunc] tid=%d, %s stopped\n", muduo::CurrentThread::tid(), muduo::CurrentThread::name());
   }
 
   muduo::BlockingQueue<std::string> queue_;
@@ -95,12 +89,12 @@ void testMove()
 
 int main()
 {
-  printf("pid=%d, tid=%d\n", ::getpid(), muduo::CurrentThread::tid());
+  printf("[main] pid=%d, tid=%d\n", ::getpid(), muduo::CurrentThread::tid());
   Test t(5);
   t.run(100);
   t.joinAll();
 
   testMove();
 
-  printf("number of created threads %d\n", muduo::Thread::numCreated());
+  printf("[main] number of created threads %d\n", muduo::Thread::numCreated());
 }

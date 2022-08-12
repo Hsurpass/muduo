@@ -28,6 +28,7 @@ namespace muduo
       return static_cast<pid_t>(::syscall(SYS_gettid));
     }
 
+    // 把fork之后的当前线程设置为主线程
     void afterFork()
     {
       muduo::CurrentThread::t_cachedTid = 0;
@@ -77,6 +78,9 @@ namespace muduo
 
         muduo::CurrentThread::t_threadName = name_.empty() ? "muduoThread" : name_.c_str();
         ::prctl(PR_SET_NAME, muduo::CurrentThread::t_threadName);
+
+        // sleep(1);
+        printf("begin execute callback.\n");
         try
         {
           func_();
@@ -154,8 +158,10 @@ namespace muduo
 
   Thread::~Thread()
   {
+    printf("~Thread(), this:%p\n", this);
     if (started_ && !joined_)
     {
+      printf("tid:%d, detached\n", tid_);
       pthread_detach(pthreadId_);
     }
   }
@@ -186,6 +192,7 @@ namespace muduo
     else
     {
       latch_.wait();
+      printf("wait finished.\n");
       assert(tid_ > 0);
     }
   }

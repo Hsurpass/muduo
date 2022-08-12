@@ -13,17 +13,17 @@ void mysleep(int seconds)
 
 void threadFunc()
 {
-  printf("tid=%d\n", muduo::CurrentThread::tid());
+  printf("threadFunc, tid=%d\n", muduo::CurrentThread::tid());
 }
 
 void threadFunc2(int x)
 {
-  printf("tid=%d, x=%d\n", muduo::CurrentThread::tid(), x);
+  printf("threadFunc3, tid=%d, x=%d\n", muduo::CurrentThread::tid(), x);
 }
 
 void threadFunc3()
 {
-  printf("tid=%d\n", muduo::CurrentThread::tid());
+  printf("threadFunc3, tid=%d\n", muduo::CurrentThread::tid());
   mysleep(1);
 }
 
@@ -37,12 +37,12 @@ class Foo
 
   void memberFunc()
   {
-    printf("tid=%d, Foo::x_=%f\n", muduo::CurrentThread::tid(), x_);
+    printf("memberFunc, tid=%d, Foo::x_=%f\n", muduo::CurrentThread::tid(), x_);
   }
 
   void memberFunc2(const std::string& text)
   {
-    printf("tid=%d, Foo::x_=%f, text=%s\n", muduo::CurrentThread::tid(), x_, text.c_str());
+    printf("memberFunc2, tid=%d, Foo::x_=%f, text=%s\n", muduo::CurrentThread::tid(), x_, text.c_str());
   }
 
  private:
@@ -76,30 +76,44 @@ void test_thread3()
 
 void test_thread4()
 {
-  Foo foo(87.53);
+  Foo foo(100.53);
 
   muduo::Thread t4(std::bind(&Foo::memberFunc2, std::ref(foo), std::string("Shuo Chen")));
   t4.start();
   t4.join();
 }
 
+// 子线程比主线程退出的晚----->detach
+void test_thread5()
+{
+  {
+    muduo::Thread t5(threadFunc3);
+    t5.start();
+    // t5 may destruct eariler than thread creation.
+  }
+}
+
+// 主线程比子线程退出的晚，但是没join----->detach
+void test_thread6()
+{
+  {
+    muduo::Thread t6(threadFunc3);
+    t6.start();
+    mysleep(3);
+    // t6 destruct later than thread creation.
+  }
+}
+
 int main()
 {
   printf("pid=%d, tid=%d\n", ::getpid(), muduo::CurrentThread::tid());
 
-  test_thread1();
-  // {
-  //   muduo::Thread t5(threadFunc3);
-  //   t5.start();
-  //   // t5 may destruct eariler than thread creation.
-  // }
-  // mysleep(2);
-  // {
-  //   muduo::Thread t6(threadFunc3);
-  //   t6.start();
-  //   mysleep(2);
-  //   // t6 destruct later than thread creation.
-  // }
-  sleep(2);
+  // test_thread1();
+  // test_thread2();
+  // test_thread3();
+  // test_thread4();
+  // test_thread5();
+  test_thread6();
+
   printf("number of created threads %d\n", muduo::Thread::numCreated());
 }
