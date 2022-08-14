@@ -88,8 +88,8 @@ add_executable(timezone_unittest TimeZone_unittest.cc)
 target_link_libraries(timezone_unittest muduo_base)
 add_test(NAME timezone_unittest COMMAND timezone_unittest)
 
-add_executable(CountDownLatch_test1 CountDownLatch_test1.cc)
-target_link_libraries(CountDownLatch_test1 muduo_base)
+add_executable(countDownLatch_test1 CountDownLatch_test1.cc)
+target_link_libraries(countDownLatch_test1 muduo_base)
 
-add_executable(CountDownLatch_test2 CountDownLatch_test2.cc)
-target_link_libraries(CountDownLatch_test2 muduo_base)
+add_executable(countDownLatch_test2 CountDownLatch_test2.cc)
+target_link_libraries(countDownLatch_test2 muduo_base)
