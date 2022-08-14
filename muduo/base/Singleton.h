@@ -50,12 +50,14 @@ namespace muduo
       value_ = new T();
       if (!detail::has_no_destroy<T>::value)
       {
-        ::atexit(destroy);
+        /* Register a function to be called when `exit' is called.  */
+        ::atexit(destroy);  // 程序退出时，自动销毁
       }
     }
 
     static void destroy()
     {
+      // 数组类型 让其在编译阶段报错
       typedef char T_must_be_complete_type[sizeof(T) == 0 ? -1 : 1];
       T_must_be_complete_type dummy;
       (void)dummy;

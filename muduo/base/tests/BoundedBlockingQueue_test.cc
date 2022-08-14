@@ -103,7 +103,7 @@ void testMove()
 void test_Test()
 {
   Test t(2);
-  t.run(100);
+  t.run(10);
   t.joinAll();
 }
 

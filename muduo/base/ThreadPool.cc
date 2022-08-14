@@ -71,7 +71,7 @@ size_t ThreadPool::queueSize() const
 
 void ThreadPool::run(Task task)
 {
-  if (threads_.empty())
+  if (threads_.empty()) // 如果线程队列是空的就直接执行
   {
     task();
   }

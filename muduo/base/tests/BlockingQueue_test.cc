@@ -20,12 +20,14 @@ public:
       threads_.emplace_back(new muduo::Thread(
           std::bind(&Test::threadFunc, this), muduo::string(name)));
     }
+
     for (auto &thr : threads_)
     {
       thr->start();
     }
   }
 
+  // 一个生产者多个消费者
   void run(int times)
   {
     printf("[run] waiting for count down latch\n");
@@ -79,21 +81,28 @@ void testMove()
 {
   muduo::BlockingQueue<std::unique_ptr<int>> queue;
   queue.put(std::unique_ptr<int>(new int(42)));
-  std::unique_ptr<int> x = queue.take();
-  printf("took %d\n", *x);
+  std::unique_ptr<int> x = queue.take();  // constructor
+  printf("took %d, queue size:%zd\n", *x, queue.size()); // 42, 0
   *x = 123;
   queue.put(std::move(x));
+  printf("queue size:%zd\n", queue.size()); // 1
+
   std::unique_ptr<int> y = queue.take();
-  printf("took %d\n", *y);
+  printf("took %d, queue size:%zd\n", *y, queue.size()); // 123 0
+}
+
+void testOneProducerMutilConsumer()
+{
+  Test t(2);
+  t.run(10);
+  t.joinAll();
 }
 
 int main()
 {
   printf("[main] pid=%d, tid=%d\n", ::getpid(), muduo::CurrentThread::tid());
-  Test t(5);
-  t.run(100);
-  t.joinAll();
 
+  // testOneProducerMutilConsumer();
   testMove();
 
   printf("[main] number of created threads %d\n", muduo::Thread::numCreated());
