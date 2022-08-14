@@ -28,7 +28,7 @@ void threadFunc2(muduo::Timestamp start)
 {
   muduo::Timestamp now(muduo::Timestamp::now());
   int delay = static_cast<int>(timeDifference(now, start) * 1000000);
-  
+
   muduo::MutexLockGuard lock(g_mutex);
   ++g_delays[delay];
 }
@@ -37,7 +37,7 @@ void forkBench()
 {
   sleep(10);
   muduo::Timestamp start(muduo::Timestamp::now());
-  int kProcesses = 10*1000;
+  int kProcesses = 10 * 1000;
 
   printf("Creating %d processes in serial\n", kProcesses);
   for (int i = 0; i < kProcesses; ++i)
@@ -55,16 +55,16 @@ void forkBench()
 
   double timeUsed = timeDifference(muduo::Timestamp::now(), start);
   printf("time elapsed %.3f seconds, process creation time used %.3f us\n",
-        timeUsed, timeUsed*1e6/kProcesses);
+         timeUsed, timeUsed * 1e6 / kProcesses);
   printf("number of created processes %d\n", kProcesses);
 }
 
 class Bench
 {
- public:
+public:
   Bench(int numThreads)
-    : startLatch_(numThreads),
-      stopLatch_(1)
+      : startLatch_(numThreads),
+        stopLatch_(1)
   {
     threads_.reserve(numThreads);
     for (int i = 0; i < numThreads; ++i)
@@ -72,9 +72,9 @@ class Bench
       char name[32];
       snprintf(name, sizeof name, "work thread %d", i);
       threads_.emplace_back(new muduo::Thread(
-            [this] { threadFunc(); },
-            muduo::string(name)
-            ));
+          [this]
+          { threadFunc(); },
+          muduo::string(name)));
     }
   }
 
@@ -84,7 +84,7 @@ class Bench
     printf("Creating %d threads in parallel\n", numThreads);
     muduo::Timestamp start = muduo::Timestamp::now();
 
-    for (auto& thr : threads_)
+    for (auto &thr : threads_)
     {
       thr->start();
     }
@@ -97,7 +97,7 @@ class Bench
     if (g_verbose)
     {
       // for (const auto& [tid, ts] : queue)
-      for (const auto& e : queue)
+      for (const auto &e : queue)
       {
         printf("thread %d, %.0f us\n", e.first, timeDifference(e.second, start) * 1e6);
       }
@@ -108,7 +108,7 @@ class Bench
   {
     muduo::Timestamp stop = muduo::Timestamp::now();
     stopLatch_.countDown();
-    for (auto& thr : threads_)
+    for (auto &thr : threads_)
     {
       thr->join();
     }
@@ -119,14 +119,14 @@ class Bench
     if (g_verbose)
     {
       // for (const auto& [tid, ts] : queue)
-      for (const auto& e : queue)
+      for (const auto &e : queue)
       {
         printf("[Stop] thread %d, %.0f us\n", e.first, timeDifference(e.second, stop) * 1e6);
       }
     }
   }
 
- private:
+private:
   void threadFunc()
   {
     const int tid = muduo::CurrentThread::tid();
@@ -142,13 +142,11 @@ class Bench
   std::vector<std::unique_ptr<muduo::Thread>> threads_;
 };
 
-int main(int argc, char* argv[])
+void loop_100000Times()
 {
-  g_verbose = argc > 1;
-  printf("[main] pid=%d, tid=%d, verbose=%d\n", ::getpid(), muduo::CurrentThread::tid(), g_verbose);
   muduo::Timestamp start(muduo::Timestamp::now());
 
-  int kThreads = 100*1000;
+  int kThreads = 100 * 1000;
   printf("[main] Creating %d threads in serial\n", kThreads);
   for (int i = 0; i < kThreads; ++i)
   {
@@ -158,8 +156,13 @@ int main(int argc, char* argv[])
   }
 
   double timeUsed = timeDifference(muduo::Timestamp::now(), start);
-  printf("elapsed %.3f seconds, thread creation time %.3f us\n", timeUsed, timeUsed*1e6/kThreads);
+  printf("elapsed %.3f seconds, thread creation time %.3f us\n", timeUsed, timeUsed * 1e6 / kThreads);
   printf("number of created threads %d, g_count = %d\n", muduo::Thread::numCreated(), g_count.get());
+}
+
+void test_delay()
+{
+  int kThreads = 100 * 1000;
 
   for (int i = 0; i < kThreads; ++i)
   {
@@ -172,15 +175,27 @@ int main(int argc, char* argv[])
   if (g_verbose)
   {
     muduo::MutexLockGuard lock(g_mutex);
-    for (const auto& delay : g_delays)
+    for (const auto &delay : g_delays)
     {
       printf("delay = %d, count = %d\n", delay.first, delay.second);
     }
   }
+}
 
+void thread_bench()
+{
   Bench t(10000);
   t.Start();
   t.Stop();
+}
 
-  forkBench();
+int main(int argc, char *argv[])
+{
+  g_verbose = argc > 1;
+  printf("[main] pid=%d, tid=%d, verbose=%d\n", ::getpid(), muduo::CurrentThread::tid(), g_verbose);
+
+  loop_100000Times();
+  // test_delay();
+  // thread_bench();
+  // forkBench();
 }
