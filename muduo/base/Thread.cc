@@ -192,7 +192,7 @@ namespace muduo
     else
     {
       latch_.wait();
-      printf("wait finished.\n");
+      // printf("wait finished.\n");
       assert(tid_ > 0);
     }
   }

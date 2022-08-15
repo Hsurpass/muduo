@@ -33,6 +33,7 @@ ThreadPool::~ThreadPool()
 void ThreadPool::start(int numThreads)
 {
   assert(threads_.empty());
+
   running_ = true;
   threads_.reserve(numThreads);
   for (int i = 0; i < numThreads; ++i)
@@ -43,6 +44,7 @@ void ThreadPool::start(int numThreads)
         std::bind(&ThreadPool::runInThread, this), name_ + id));
     threads_[i]->start();
   }
+
   if (numThreads == 0 && threadInitCallback_)
   {
     threadInitCallback_();
@@ -57,6 +59,7 @@ void ThreadPool::stop()
     notEmpty_.notifyAll();
     notFull_.notifyAll();
   }
+
   for (auto &thr : threads_)
   {
     thr->join();
@@ -69,10 +72,12 @@ size_t ThreadPool::queueSize() const
   return queue_.size();
 }
 
+// 在主线程跑
 void ThreadPool::run(Task task)
 {
-  if (threads_.empty()) // 如果线程队列是空的就直接执行
+  if (threads_.empty()) // 如果线程队列是空的(没创建线程)就直接执行
   {
+    printf("threads_ is empty, direct run\n");
     task();
   }
   else
@@ -80,10 +85,14 @@ void ThreadPool::run(Task task)
     MutexLockGuard lock(mutex_);
     while (isFull() && running_)
     {
-      notFull_.wait();
+      notFull_.wait(); // 生产者队列 为满阻塞
+      printf("[run] notFull wait finished\n");
     }
     if (!running_)
+    {
+      printf("Thread pool is not running!\n");
       return;
+    }
     assert(!isFull());
 
     queue_.push_back(std::move(task));
@@ -91,24 +100,29 @@ void ThreadPool::run(Task task)
   }
 }
 
+// 在子线程跑
 ThreadPool::Task ThreadPool::take()
 {
   MutexLockGuard lock(mutex_);
   // always use a while-loop, due to spurious wakeup
-  while (queue_.empty() && running_)
+  while (queue_.empty() && running_) // (消费者)
   {
-    notEmpty_.wait();
+    notEmpty_.wait(); // 为空阻塞
+    printf("[take] notEmpty wait finished\n");
   }
+
   Task task;
   if (!queue_.empty())
   {
     task = queue_.front();
     queue_.pop_front();
+
     if (maxQueueSize_ > 0)
     {
       notFull_.notify();
     }
   }
+
   return task;
 }
 
@@ -126,6 +140,7 @@ void ThreadPool::runInThread()
     {
       threadInitCallback_();
     }
+
     while (running_)
     {
       Task task(take());
@@ -133,6 +148,11 @@ void ThreadPool::runInThread()
       {
         task();
       }
+      else
+      {
+        printf("task is false\n");
+      }
+      
     }
   }
   catch (const Exception &ex)

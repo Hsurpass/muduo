@@ -27,10 +27,7 @@ namespace muduo
 
     // Must be called before start().
     void setMaxQueueSize(int maxSize) { maxQueueSize_ = maxSize; }
-    void setThreadInitCallback(const Task &cb)
-    {
-      threadInitCallback_ = cb;
-    }
+    void setThreadInitCallback(const Task &cb) { threadInitCallback_ = cb; }
 
     void start(int numThreads);
     void stop();
@@ -60,8 +57,8 @@ namespace muduo
     Condition notFull_ GUARDED_BY(mutex_);
     string name_;
     Task threadInitCallback_;
-    std::vector<std::unique_ptr<muduo::Thread>> threads_;
-    std::deque<Task> queue_ GUARDED_BY(mutex_);
+    std::vector<std::unique_ptr<muduo::Thread>> threads_; // 消费者
+    std::deque<Task> queue_ GUARDED_BY(mutex_); // 生产者
     size_t maxQueueSize_;
     bool running_;
   };
