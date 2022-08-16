@@ -18,7 +18,7 @@
 namespace muduo
 {
 
-  /*
+/*
 class LoggerImpl
 {
  public:
@@ -200,7 +200,7 @@ Logger::~Logger()
   impl_.finish();
   const LogStream::Buffer &buf(stream().buffer());
   g_output(buf.data(), buf.length());
-  if (impl_.level_ == FATAL)
+  if (impl_.level_ == FATAL)  // FATAL日志会终止程序
   {
     g_flush();
     abort();
