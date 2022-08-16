@@ -70,10 +70,17 @@ namespace muduo
       static void cookieStart();
       static void cookieEnd();
 
-      void (*cookie_)();
+      void (*cookie_)();  // 函数指针
       char data_[SIZE];
       char *cur_;
     };
+    /*
+    data
+      ————————
+      |a|b| | |
+      ————————
+           curr
+    */
 
   } // namespace detail
 

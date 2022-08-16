@@ -50,7 +50,7 @@ namespace muduo
 
       do
       {
-        int lsd = static_cast<int>(i % 10);
+        int lsd = static_cast<int>(i % 10); //最后一个数字
         i /= 10;
         *p++ = zero[lsd];
       } while (i != 0);
@@ -72,7 +72,7 @@ namespace muduo
 
       do
       {
-        int lsd = static_cast<int>(i % 16);
+        int lsd = static_cast<int>(i % 16); // 16进制
         i /= 16;
         *p++ = digitsHex[lsd];
       } while (i != 0);

@@ -1,3 +1,7 @@
+// sudo apt-get install boost-test-dev  boost测试框架库
+// sudo apt-get install boost-dev boost基础库
+// g++ -lmuduo_base -lboost_unit_test_framework
+
 #include "muduo/base/LogStream.h"
 
 #include <limits>
