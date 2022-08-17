@@ -12,8 +12,8 @@ const size_t N = 1000000;
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
-template<typename T>
-void benchPrintf(const char* fmt)
+template <typename T>
+void benchPrintf(const char *fmt)
 {
   char buf[32];
   Timestamp start(Timestamp::now());
@@ -24,7 +24,7 @@ void benchPrintf(const char* fmt)
   printf("benchPrintf %f\n", timeDifference(end, start));
 }
 
-template<typename T>
+template <typename T>
 void benchStringStream()
 {
   Timestamp start(Timestamp::now());
@@ -40,7 +40,7 @@ void benchStringStream()
   printf("benchStringStream %f\n", timeDifference(end, start));
 }
 
-template<typename T>
+template <typename T>
 void benchLogStream()
 {
   Timestamp start(Timestamp::now());
@@ -75,8 +75,7 @@ int main()
   benchLogStream<int64_t>();
 
   puts("void*");
-  benchPrintf<void*>("%p");
-  benchStringStream<void*>();
-  benchLogStream<void*>();
-
+  benchPrintf<void *>("%p");
+  benchStringStream<void *>();
+  benchLogStream<void *>();
 }

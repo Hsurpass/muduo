@@ -1,5 +1,5 @@
-// sudo apt-get install boost-test-dev  boost测试框架库
-// sudo apt-get install boost-dev boost基础库
+// sudo apt-get install libboost-test-dev  boost测试框架库
+// sudo apt-get install libboost-dev boost基础库
 // g++ -lmuduo_base -lboost_unit_test_framework
 
 #include "muduo/base/LogStream.h"
@@ -11,6 +11,7 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
+#include <iostream>
 
 using muduo::string;
 
@@ -104,6 +105,33 @@ BOOST_AUTO_TEST_CASE(testLogStreamIntegerLimits)
   os << std::numeric_limits<uint64_t>::max();
   BOOST_CHECK_EQUAL(buf.toString(), string("18446744073709551615"));
   os.resetBuffer();
+
+  os << std::numeric_limits<int8_t>::min();
+  BOOST_CHECK_EQUAL(buf.toString(), string("-128"));
+  os.resetBuffer();
+
+  os << std::numeric_limits<int8_t>::max();
+  BOOST_CHECK_EQUAL(buf.toString(), string("127"));
+  os.resetBuffer();
+
+  os << std::numeric_limits<uint8_t>::min();
+  BOOST_CHECK_EQUAL(buf.toString(), string("0"));
+  os.resetBuffer();
+
+  os << std::numeric_limits<uint8_t>::max();
+  BOOST_CHECK_EQUAL(buf.toString(), string("255"));
+  os.resetBuffer();
+
+  // std::cout << std::numeric_limits<char>::min();
+  // std::cout << std::numeric_limits<char>::max();
+
+  // os << std::numeric_limits<char>::min();
+  // BOOST_CHECK_EQUAL(buf.toString(), string("-128"));
+  // os.resetBuffer();
+
+  // os << std::numeric_limits<char>::max();
+  // BOOST_CHECK_EQUAL(buf.toString(), string("127"));
+  // os.resetBuffer();
 
   int16_t a = 0;
   int32_t b = 0;
