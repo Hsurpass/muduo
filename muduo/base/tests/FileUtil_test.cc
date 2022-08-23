@@ -10,6 +10,7 @@ int main()
 {
   string result;
   int64_t size = 0;
+  
   int err = FileUtil::readFile("/proc/self", 1024, &result, &size);
   printf("%d %zd %" PRIu64 "\n", err, result.size(), size);
   err = FileUtil::readFile("/proc/self", 1024, &result, NULL);

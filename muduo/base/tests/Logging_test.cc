@@ -66,8 +66,7 @@ void test_muduo_logger()
   LOG_INFO << "sizeof(muduo::Logger):" << sizeof(muduo::Logger);
   LOG_INFO << "sizeof(muduo::LogStream):" << sizeof(muduo::LogStream);
   LOG_INFO << "sizeof(muduo::Fmt):" << sizeof(muduo::Fmt);
-  LOG_INFO << "sizeof(muduo::LogStream::Buffer): "<< sizeof(muduo::LogStream::Buffer);
-
+  LOG_INFO << "sizeof(muduo::LogStream::Buffer): " << sizeof(muduo::LogStream::Buffer);
 }
 
 void test_muduo_logger_inThread()
@@ -101,6 +100,7 @@ void test_bench_tmp_log()
   fclose(g_file);
 }
 
+// 非线程安全
 void test_bench_log_st()
 {
   g_file = NULL;
@@ -108,6 +108,7 @@ void test_bench_log_st()
   bench("test_log_st");
 }
 
+// 线程安全
 void test_bench_log_mt()
 {
   g_logFile.reset(new muduo::LogFile("test_log_mt", 500 * 1000 * 1000, true));
@@ -143,7 +144,7 @@ void test_logger_TimeZone()
 int main()
 {
   getppid(); // for ltrace and strace
-  
+
   test_muduo_logger();
   // test_muduo_logger_inThread();
 

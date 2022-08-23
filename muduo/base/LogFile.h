@@ -38,17 +38,17 @@ namespace muduo
 
                 static string getLogFileName(const string &basename, time_t *now);
 
-                const string basename_;
-                const off_t rollSize_;
-                const int flushInterval_;
+                const string basename_; // 日志文件basename
+                const off_t rollSize_;  // 日志文件达到rollSize_ 换一个新文件
+                const int flushInterval_;       // 日志写入时间间隔
                 const int checkEveryN_;
 
                 int count_;
 
                 std::unique_ptr<MutexLock> mutex_;
-                time_t startOfPeriod_;
-                time_t lastRoll_;
-                time_t lastFlush_;
+                time_t startOfPeriod_;  // 开始记录日志时间(调整至零点)
+                time_t lastRoll_;       // 上一次滚动日志文件时间
+                time_t lastFlush_;      // 上一次日志写入时间
                 std::unique_ptr<FileUtil::AppendFile> file_;
 
                 const static int kRollPerSeconds_ = 60 * 60 * 24;

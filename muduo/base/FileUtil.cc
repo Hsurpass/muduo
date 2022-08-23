@@ -16,8 +16,8 @@
 using namespace muduo;
 
 FileUtil::AppendFile::AppendFile(StringArg filename)
-  : fp_(::fopen(filename.c_str(), "ae")),  // 'e' for O_CLOEXEC
-    writtenBytes_(0)
+    : fp_(::fopen(filename.c_str(), "ae")), // 'e' for O_CLOEXEC
+      writtenBytes_(0)
 {
   assert(fp_);
   ::setbuffer(fp_, buffer_, sizeof buffer_);
@@ -29,10 +29,11 @@ FileUtil::AppendFile::~AppendFile()
   ::fclose(fp_);
 }
 
-void FileUtil::AppendFile::append(const char* logline, const size_t len)
+void FileUtil::AppendFile::append(const char *logline, const size_t len)
 {
   size_t written = 0;
 
+  // remain>0表示没写完， 需要继续写，直到写完
   while (written != len)
   {
     size_t remain = len - written;
@@ -57,15 +58,15 @@ void FileUtil::AppendFile::flush()
   ::fflush(fp_);
 }
 
-size_t FileUtil::AppendFile::write(const char* logline, size_t len)
+size_t FileUtil::AppendFile::write(const char *logline, size_t len)
 {
   // #undef fwrite_unlocked
   return ::fwrite_unlocked(logline, 1, len, fp_);
 }
 
 FileUtil::ReadSmallFile::ReadSmallFile(StringArg filename)
-  : fd_(::open(filename.c_str(), O_RDONLY | O_CLOEXEC)),
-    err_(0)
+    : fd_(::open(filename.c_str(), O_RDONLY | O_CLOEXEC)),
+      err_(0)
 {
   buf_[0] = '\0';
   if (fd_ < 0)
@@ -83,15 +84,16 @@ FileUtil::ReadSmallFile::~ReadSmallFile()
 }
 
 // return errno
-template<typename String>
+template <typename String>
 int FileUtil::ReadSmallFile::readToString(int maxSize,
-                                          String* content,
-                                          int64_t* fileSize,
-                                          int64_t* modifyTime,
-                                          int64_t* createTime)
+                                          String *content,
+                                          int64_t *fileSize,
+                                          int64_t *modifyTime,
+                                          int64_t *createTime)
 {
   static_assert(sizeof(off_t) == 8, "_FILE_OFFSET_BITS = 64");
   assert(content != NULL);
+
   int err = err_;
   if (fd_ >= 0)
   {
@@ -130,6 +132,7 @@ int FileUtil::ReadSmallFile::readToString(int maxSize,
     {
       size_t toRead = std::min(implicit_cast<size_t>(maxSize) - content->size(), sizeof(buf_));
       ssize_t n = ::read(fd_, buf_, toRead);
+
       if (n > 0)
       {
         content->append(buf_, n);
@@ -142,17 +145,18 @@ int FileUtil::ReadSmallFile::readToString(int maxSize,
         }
         break;
       }
+      
     }
   }
   return err;
 }
 
-int FileUtil::ReadSmallFile::readToBuffer(int* size)
+int FileUtil::ReadSmallFile::readToBuffer(int *size)
 {
   int err = err_;
   if (fd_ >= 0)
   {
-    ssize_t n = ::pread(fd_, buf_, sizeof(buf_)-1, 0);
+    ssize_t n = ::pread(fd_, buf_, sizeof(buf_) - 1, 0);
     if (n >= 0)
     {
       if (size)
@@ -171,11 +175,10 @@ int FileUtil::ReadSmallFile::readToBuffer(int* size)
 
 template int FileUtil::readFile(StringArg filename,
                                 int maxSize,
-                                string* content,
-                                int64_t*, int64_t*, int64_t*);
+                                string *content,
+                                int64_t *, int64_t *, int64_t *);
 
 template int FileUtil::ReadSmallFile::readToString(
     int maxSize,
-    string* content,
-    int64_t*, int64_t*, int64_t*);
-
+    string *content,
+    int64_t *, int64_t *, int64_t *);

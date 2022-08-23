@@ -21,16 +21,16 @@ const int Channel::kNoneEvent = 0;
 const int Channel::kReadEvent = POLLIN | POLLPRI;
 const int Channel::kWriteEvent = POLLOUT;
 
-Channel::Channel(EventLoop* loop, int fd__)
-  : loop_(loop),
-    fd_(fd__),
-    events_(0),
-    revents_(0),
-    index_(-1),
-    logHup_(true),
-    tied_(false),
-    eventHandling_(false),
-    addedToLoop_(false)
+Channel::Channel(EventLoop *loop, int fd__)
+    : loop_(loop),
+      fd_(fd__),
+      events_(0),
+      revents_(0),
+      index_(-1),
+      logHup_(true),
+      tied_(false),
+      eventHandling_(false),
+      addedToLoop_(false)
 {
 }
 
@@ -44,7 +44,7 @@ Channel::~Channel()
   }
 }
 
-void Channel::tie(const std::shared_ptr<void>& obj)
+void Channel::tie(const std::shared_ptr<void> &obj)
 {
   tie_ = obj;
   tied_ = true;
@@ -56,6 +56,7 @@ void Channel::update()
   loop_->updateChannel(this);
 }
 
+// 调用这个函数之前确保调用disableAll
 void Channel::remove()
 {
   assert(isNoneEvent());
@@ -84,31 +85,36 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
 {
   eventHandling_ = true;
   LOG_TRACE << reventsToString();
+  // revents有POLLHUP事件，没有POLLIN事件
   if ((revents_ & POLLHUP) && !(revents_ & POLLIN))
   {
     if (logHup_)
     {
       LOG_WARN << "fd = " << fd_ << " Channel::handle_event() POLLHUP";
     }
-    if (closeCallback_) closeCallback_();
+    if (closeCallback_)
+      closeCallback_();
   }
 
-  if (revents_ & POLLNVAL)
+  if (revents_ & POLLNVAL)   //POLLNVAL:文件描述符没有打开或者不是一个合法的fd
   {
     LOG_WARN << "fd = " << fd_ << " Channel::handle_event() POLLNVAL";
   }
 
   if (revents_ & (POLLERR | POLLNVAL))
   {
-    if (errorCallback_) errorCallback_();
+    if (errorCallback_)
+      errorCallback_();
   }
   if (revents_ & (POLLIN | POLLPRI | POLLRDHUP))
   {
-    if (readCallback_) readCallback_(receiveTime);
+    if (readCallback_)
+      readCallback_(receiveTime);
   }
   if (revents_ & POLLOUT)
   {
-    if (writeCallback_) writeCallback_();
+    if (writeCallback_)
+      writeCallback_();
   }
   eventHandling_ = false;
 }

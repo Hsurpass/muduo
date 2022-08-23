@@ -86,7 +86,7 @@ void RpcChannel::onRpcMessage(const TcpConnectionPtr& conn,
   if (message.type() == RESPONSE)
   {
     int64_t id = message.id();
-    assert(message.has_response() || message.has_error());
+    // assert(message.has_response() || message.has_error());
 
     OutstandingCall out = { NULL, NULL };
 
