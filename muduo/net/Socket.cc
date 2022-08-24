@@ -92,6 +92,7 @@ void Socket::setTcpNoDelay(bool on)
   // FIXME CHECK
 }
 
+// 端口复用
 void Socket::setReuseAddr(bool on)
 {
   int optval = on ? 1 : 0;

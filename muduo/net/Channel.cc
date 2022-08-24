@@ -67,6 +67,7 @@ void Channel::remove()
 void Channel::handleEvent(Timestamp receiveTime)
 {
   std::shared_ptr<void> guard;
+
   if (tied_)
   {
     guard = tie_.lock();
@@ -85,6 +86,7 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
 {
   eventHandling_ = true;
   LOG_TRACE << reventsToString();
+  
   // revents有POLLHUP事件，没有POLLIN事件
   if ((revents_ & POLLHUP) && !(revents_ & POLLIN))
   {

@@ -152,6 +152,7 @@ int sockets::accept(int sockfd, struct sockaddr_in6 *addr)
       break;
     }
   }
+
   return connfd;
 }
 
@@ -205,6 +206,7 @@ void sockets::toIpPort(char *buf, size_t size,
     snprintf(buf + end, size - end, "]:%u", port);
     return;
   }
+
   toIp(buf, size, addr);
   size_t end = ::strlen(buf);
   const struct sockaddr_in *addr4 = sockaddr_in_cast(addr);
@@ -295,10 +297,12 @@ bool sockets::isSelfConnect(int sockfd)
 {
   struct sockaddr_in6 localaddr = getLocalAddr(sockfd);
   struct sockaddr_in6 peeraddr = getPeerAddr(sockfd);
+  
   if (localaddr.sin6_family == AF_INET)
   {
     const struct sockaddr_in *laddr4 = reinterpret_cast<struct sockaddr_in *>(&localaddr);
     const struct sockaddr_in *raddr4 = reinterpret_cast<struct sockaddr_in *>(&peeraddr);
+    
     return laddr4->sin_port == raddr4->sin_port && laddr4->sin_addr.s_addr == raddr4->sin_addr.s_addr;
   }
   else if (localaddr.sin6_family == AF_INET6)
