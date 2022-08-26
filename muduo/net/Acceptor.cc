@@ -33,8 +33,7 @@ Acceptor::Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reusepor
   acceptSocket_.setReuseAddr(true);
   acceptSocket_.setReusePort(reuseport);
   acceptSocket_.bindAddress(listenAddr);
-  acceptChannel_.setReadCallback(
-      std::bind(&Acceptor::handleRead, this));
+  acceptChannel_.setReadCallback( std::bind(&Acceptor::handleRead, this) );
 }
 
 Acceptor::~Acceptor()
@@ -56,6 +55,7 @@ void Acceptor::handleRead()
 {
   loop_->assertInLoopThread();
   InetAddress peerAddr;
+  
   //FIXME loop until no more
   int connfd = acceptSocket_.accept(&peerAddr);
   if (connfd >= 0)
