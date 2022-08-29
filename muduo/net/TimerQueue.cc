@@ -166,8 +166,9 @@ void TimerQueue::handleRead()
   loop_->assertInLoopThread();
   
   Timestamp now(Timestamp::now());
-  readTimerfd(timerfd_, now);
+  readTimerfd(timerfd_, now); // 清除该事件，避免一直触发
 
+  // 获取该时刻之前所有的定时器列表
   std::vector<Entry> expired = getExpired(now);
 
   callingExpiredTimers_ = true;
@@ -179,6 +180,7 @@ void TimerQueue::handleRead()
   }
   callingExpiredTimers_ = false;
 
+  // 不是一次定时器，重启
   reset(expired, now);
 }
 
@@ -188,7 +190,9 @@ std::vector<TimerQueue::Entry> TimerQueue::getExpired(Timestamp now)
 
   // 到期的timer
   std::vector<Entry> expired;
+
   Entry sentry(now, reinterpret_cast<Timer *>(UINTPTR_MAX));
+  // 返回第一个未到期的Timer的迭代器
   TimerList::iterator end = timers_.lower_bound(sentry);
   assert(end == timers_.end() || now < end->first);
 
@@ -242,6 +246,7 @@ bool TimerQueue::insert(Timer *timer)
   loop_->assertInLoopThread();
   assert(timers_.size() == activeTimers_.size());
 
+  // 最早到期时间是否改变
   bool earliestChanged = false;
   Timestamp when = timer->expiration();
   TimerList::iterator it = timers_.begin();
