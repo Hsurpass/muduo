@@ -192,7 +192,9 @@ std::vector<TimerQueue::Entry> TimerQueue::getExpired(Timestamp now)
   std::vector<Entry> expired;
 
   Entry sentry(now, reinterpret_cast<Timer *>(UINTPTR_MAX));
-  // 返回第一个未到期的Timer的迭代器
+  // 返回第一个未到期的Timer的迭代器.
+  // lower_bound会先比较key，再比较value。由于sentry的value值为无穷大，
+  // 所以 end->first总是> now
   TimerList::iterator end = timers_.lower_bound(sentry);
   assert(end == timers_.end() || now < end->first);
 
