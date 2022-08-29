@@ -19,6 +19,7 @@
 #include "muduo/net/Callbacks.h"
 #include "muduo/net/Channel.h"
 
+// TimerQueue数据结构的选择，能快速根据当前时间找到已到期的定时器，也要高效的添加和删除Timer,因此可以使用二叉搜索树
 namespace muduo
 {
   namespace net
@@ -43,6 +44,7 @@ namespace muduo
       /// repeats if @c interval > 0.0.
       ///
       /// Must be thread safe. Usually be called from other threads.
+      // 一定是线程安全的，可以跨线程调用，通常情况下被其他线程调用
       TimerId addTimer(TimerCallback cb,
                        Timestamp when,
                        double interval);
