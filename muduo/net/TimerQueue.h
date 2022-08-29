@@ -58,6 +58,8 @@ namespace muduo
       typedef std::pair<Timer *, int64_t> ActiveTimer;
       typedef std::set<ActiveTimer> ActiveTimerSet;
 
+      // 以下成员函数只可能在其所属的I/O线程中调用，因而不必加锁。
+      // 服务器性能杀手之一是锁竞争，所以要尽可能少用锁
       void addTimerInLoop(Timer *timer);
       void cancelInLoop(TimerId timerId);
       // called when timerfd alarms

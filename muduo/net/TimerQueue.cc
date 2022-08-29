@@ -130,10 +130,12 @@ void TimerQueue::cancel(TimerId timerId)
 void TimerQueue::addTimerInLoop(Timer *timer)
 {
   loop_->assertInLoopThread();
+  // 插入一个定时器，有可能会使得最早到期的定时器发生改变
   bool earliestChanged = insert(timer);
 
   if (earliestChanged)
   {
+    // 重置定时器的超时时刻
     resetTimerfd(timerfd_, timer->expiration());
   }
 }
