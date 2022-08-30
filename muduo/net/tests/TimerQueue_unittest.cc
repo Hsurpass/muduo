@@ -55,7 +55,9 @@ int main()
     loop.loop();
     print("main loop exits");
   }
+
   sleep(1);
+  
   {
     EventLoopThread loopThread;
     EventLoop* loop = loopThread.startLoop();
