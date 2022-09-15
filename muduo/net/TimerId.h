@@ -26,15 +26,11 @@ namespace muduo
     class TimerId : public muduo::copyable
     {
     public:
-      TimerId()
-          : timer_(NULL),
-            sequence_(0)
+      TimerId() : timer_(NULL), sequence_(0)
       {
       }
 
-      TimerId(Timer *timer, int64_t seq)
-          : timer_(timer),
-            sequence_(seq)
+      TimerId(Timer *timer, int64_t seq) : timer_(timer), sequence_(seq)
       {
       }
 
