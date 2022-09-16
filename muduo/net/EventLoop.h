@@ -149,7 +149,7 @@ namespace muduo
       bool callingPendingFunctors_; /* atomic */
       int64_t iteration_;
       const pid_t threadId_;  // 当前对象所属线程id
-      Timestamp pollReturnTime_;  // 调用poll函数返回时间戳
+      Timestamp pollReturnTime_;  // 调用poll函数返回的时间戳
       std::unique_ptr<Poller> poller_;  
       std::unique_ptr<TimerQueue> timerQueue_;  
       int wakeupFd_;

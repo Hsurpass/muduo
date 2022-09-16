@@ -88,6 +88,7 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
   LOG_TRACE << reventsToString();
   
   // revents有POLLHUP事件，没有POLLIN事件
+  // POLLHUP: Hung up, output only
   if ((revents_ & POLLHUP) && !(revents_ & POLLIN))
   {
     if (logHup_)
@@ -98,6 +99,7 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
       closeCallback_();
   }
 
+  /* Invalid polling request.  */
   if (revents_ & POLLNVAL)   //POLLNVAL:文件描述符没有打开或者不是一个合法的fd
   {
     LOG_WARN << "fd = " << fd_ << " Channel::handle_event() POLLNVAL";
@@ -108,16 +110,25 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
     if (errorCallback_)
       errorCallback_();
   }
+
+  /*
+  POLLRDHUP:对端关闭或者处于半连接状态
+  Stream socket peer closed connection, or shut down writing
+              half of connection.  (This flag is especially useful for
+              writing simple code to detect peer shutdown when using
+              edge-triggered monitoring.)*/
   if (revents_ & (POLLIN | POLLPRI | POLLRDHUP))
   {
     if (readCallback_)
       readCallback_(receiveTime);
   }
+
   if (revents_ & POLLOUT)
   {
     if (writeCallback_)
       writeCallback_();
   }
+  
   eventHandling_ = false;
 }
 

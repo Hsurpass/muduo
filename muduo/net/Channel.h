@@ -119,7 +119,7 @@ namespace muduo
       static const int kWriteEvent;
 
       EventLoop *loop_;   // 所属eventloop
-      const int fd_;      // 文件描述符，但不负责关闭该文件描述符
+      const int fd_;      // 文件描述符，但不负责关闭该文件描述符，Socket类所持有
       int events_;        // 关注的事件
       int revents_; // it's the received event types of epoll or poll
                     // poll/epoll返回的事件

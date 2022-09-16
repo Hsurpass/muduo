@@ -63,8 +63,10 @@ void PollPoller::fillActiveChannels(int numEvents,
       --numEvents;
       ChannelMap::const_iterator ch = channels_.find(pfd->fd);
       assert(ch != channels_.end());
+
       Channel *channel = ch->second;
       assert(channel->fd() == pfd->fd);
+      
       channel->set_revents(pfd->revents);
       // pfd->revents = 0;
       activeChannels->push_back(channel);
@@ -82,6 +84,7 @@ void PollPoller::updateChannel(Channel *channel)
     // index < 0说明是一个新的通道
     // a new one, add to pollfds_
     assert(channels_.find(channel->fd()) == channels_.end());
+
     struct pollfd pfd;
     pfd.fd = channel->fd();
     pfd.events = static_cast<short>(channel->events());
@@ -113,11 +116,12 @@ void PollPoller::updateChannel(Channel *channel)
       // ignore this pollfd
       // 暂时忽略该文件描述符的事件
       // 这里pfd.fd可以直接设置为-1
-      pfd.fd = -channel->fd() - 1;  // 这样子设置是为了removeChannel的优化 （-0 - 1）
+      pfd.fd = -channel->fd() - 1;  // 这样子设置是为了removeChannel的优化; 为什么要减0呢?特例:（-0 - 1）
     }
   }
 }
 
+// 调用removeChannel之前一定要调用updateChannel设置为noneEvent
 void PollPoller::removeChannel(Channel *channel)
 {
   Poller::assertInLoopThread();

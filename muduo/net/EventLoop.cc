@@ -88,8 +88,7 @@ EventLoop::EventLoop()
     t_loopInThisThread = this;
   }
 
-  wakeupChannel_->setReadCallback(
-      std::bind(&EventLoop::handleRead, this));
+  wakeupChannel_->setReadCallback(std::bind(&EventLoop::handleRead, this));
   // we are always reading the wakeupfd
   wakeupChannel_->enableReading();
 }
@@ -98,13 +97,14 @@ EventLoop::~EventLoop()
 {
   LOG_DEBUG << "EventLoop " << this << " of thread " << threadId_
             << " destructs in thread " << CurrentThread::tid();
+
   wakeupChannel_->disableAll();
   wakeupChannel_->remove();
   ::close(wakeupFd_);
   t_loopInThisThread = NULL;
 }
 
-// 不能跨线程调用
+// 不能跨线程调用,只能在创建该对象的线程中调用
 void EventLoop::loop()
 {
   assert(!looping_);
