@@ -153,14 +153,17 @@ void EventLoop::quit()
   }
 }
 
+// 在I/O线程中执行某个回调函数，该函数可以跨线程调用
 void EventLoop::runInLoop(Functor cb)
 {
   if (isInLoopThread())
   {
+    // 如果是当前IO线程调用runLoop, 则同步调用cb
     cb();
   }
   else
   {
+    // 如果是其他线程调用runLoop, 则异步地将cb添加到队列
     queueInLoop(std::move(cb));
   }
 }
@@ -169,9 +172,12 @@ void EventLoop::queueInLoop(Functor cb)
 {
   {
     MutexLockGuard lock(mutex_);
-    pendingFunctors_.push_back(std::move(cb));
+    pendingFunctors_.push_back(std::move(cb));  //添加到任务队列
   }
 
+  // 调用queueInLoop的线程不是当前IO线程(eventloop那个线程)需要唤醒
+  // 或者调用queueInLoop的线程是当前IO线程，并且此时正在调用pendingfunctor, 需要唤醒
+  // 只有当前IO线程的事件回调中调用queueInLoop才不需要唤醒
   if (!isInLoopThread() || callingPendingFunctors_)
   {
     wakeup();
@@ -259,6 +265,11 @@ void EventLoop::handleRead()
   }
 }
 
+/*
+  不是简单地在临界区内一次调用Functor,而是把回调列表swap到functors中，
+  这样一方面减小了临界区的长度(意味着不会阻塞其他线程的queueLoop()),
+  另一方面，也避免了死锁(因为Functor可能再次调用queueLoop())
+*/
 void EventLoop::doPendingFunctors()
 {
   std::vector<Functor> functors;

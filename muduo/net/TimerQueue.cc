@@ -111,9 +111,7 @@ TimerQueue::~TimerQueue()
   }
 }
 
-TimerId TimerQueue::addTimer(TimerCallback cb,
-                             Timestamp when,
-                             double interval)
+TimerId TimerQueue::addTimer(TimerCallback cb, Timestamp when, double interval)
 {
   Timer *timer = new Timer(std::move(cb), when, interval);
   loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop, this, timer));
@@ -218,6 +216,7 @@ void TimerQueue::reset(const std::vector<Entry> &expired, Timestamp now)
   for (const Entry &it : expired)
   {
     ActiveTimer timer(it.second, it.second->sequence());
+    // 如果是重复的定时器并且是未取消的定时器，则重启该定时器
     if (it.second->repeat() && cancelingTimers_.find(timer) == cancelingTimers_.end())
     {
       it.second->restart(now);
@@ -226,6 +225,7 @@ void TimerQueue::reset(const std::vector<Entry> &expired, Timestamp now)
     else
     {
       // FIXME move to a free list
+      // 一次性定时器或者已被取消的定时器是不能重置的，因此删除该定时器
       delete it.second; // FIXME: no delete please
     }
   }

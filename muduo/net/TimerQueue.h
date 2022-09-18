@@ -45,9 +45,7 @@ namespace muduo
       ///
       /// Must be thread safe. Usually be called from other threads.
       // 一定是线程安全的，可以跨线程调用，通常情况下被其他线程调用
-      TimerId addTimer(TimerCallback cb,
-                       Timestamp when,
-                       double interval);
+      TimerId addTimer(TimerCallback cb, Timestamp when, double interval);
 
       void cancel(TimerId timerId);
 
