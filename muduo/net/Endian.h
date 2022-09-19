@@ -28,7 +28,7 @@ namespace muduo
 #pragma GCC diagnostic ignored "-Wold-style-cast"
       inline uint64_t hostToNetwork64(uint64_t host64)
       {
-        return htobe64(host64);
+        return htobe64(host64); // host to endian 不可移植；htonl posix标准可移植
       }
 
       inline uint32_t hostToNetwork32(uint32_t host32)

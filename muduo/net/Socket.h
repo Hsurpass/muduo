@@ -34,8 +34,7 @@ namespace muduo
     class Socket : noncopyable
     {
     public:
-      explicit Socket(int sockfd)
-          : sockfd_(sockfd)
+      explicit Socket(int sockfd) : sockfd_(sockfd)
       {
       }
 
@@ -62,7 +61,9 @@ namespace muduo
 
       ///
       /// Enable/disable TCP_NODELAY (disable/enable Nagle's algorithm).
-      ///
+      // Nagle算法可以一定程度上避免网络拥塞
+      // TCP_NODELAY选项可以禁用Nagle算法
+      // 禁用Nagle算法，可以避免连续发包出现延迟，这对于编写低延迟的网络服务很重要
       void setTcpNoDelay(bool on);
 
       ///

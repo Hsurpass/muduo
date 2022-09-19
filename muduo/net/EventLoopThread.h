@@ -15,6 +15,10 @@
 #include "muduo/base/Mutex.h"
 #include "muduo/base/Thread.h"
 
+/*
+  EventLoopThread创建了一个线程
+  在线程函数中创建了一个EventLoop对象并调用EventLoop:loop
+*/
 namespace muduo
 {
   namespace net

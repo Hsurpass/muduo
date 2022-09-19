@@ -77,9 +77,9 @@ void Acceptor::handleRead()
     // Read the section named "The special problem of
     // accept()ing when you can't" in libev's doc.
     // By Marc Lehmann, author of libev.
-    if (errno == EMFILE)
+    if (errno == EMFILE)  /* Too many open files */ // 电平触发会一直触发read事件,如果不作处理会一直报errno
     {
-      ::close(idleFd_);
+      ::close(idleFd_); // 关闭空闲的文件描述符， 腾出一个
       idleFd_ = ::accept(acceptSocket_.fd(), NULL, NULL);
       ::close(idleFd_);
       idleFd_ = ::open("/dev/null", O_RDONLY | O_CLOEXEC);

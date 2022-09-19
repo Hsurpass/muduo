@@ -46,5 +46,11 @@ add_executable(timerqueue_unittest TimerQueue_unittest.cc)
 target_link_libraries(timerqueue_unittest muduo_net)
 add_test(NAME timerqueue_unittest COMMAND timerqueue_unittest)
 
-add_executable(reactor_timerfd_test reactor_timerfd_test.cc)
-target_link_libraries(reactor_timerfd_test muduo_net)
+# add_executable(reactor_timerfd_test reactor_timerfd_test.cc)
+# target_link_libraries(reactor_timerfd_test muduo_net)
+
+add_executable(reactor_runInLoop_test Reactor_runInLoop_test.cc)
+target_link_libraries(reactor_runInLoop_test muduo_net)
+
+add_executable(acceptor_test Acceptor_test.cc)
+target_link_libraries(acceptor_test muduo_net)

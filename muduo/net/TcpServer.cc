@@ -32,6 +32,7 @@ TcpServer::TcpServer(EventLoop *loop,
       messageCallback_(defaultMessageCallback),
       nextConnId_(1)
 {
+  // _1对应的是socket文件描述符，_2对应的是对等方地址
   acceptor_->setNewConnectionCallback(
       std::bind(&TcpServer::newConnection, this, _1, _2));
 }
@@ -56,6 +57,8 @@ void TcpServer::setThreadNum(int numThreads)
   threadPool_->setThreadNum(numThreads);
 }
 
+// 该函数多次调用是无害的
+// 该函数可以跨线程调用
 void TcpServer::start()
 {
   if (started_.getAndSet(1) == 0)
@@ -64,7 +67,8 @@ void TcpServer::start()
 
     assert(!acceptor_->listening());
     loop_->runInLoop(
-        std::bind(&Acceptor::listen, get_pointer(acceptor_)));
+        std::bind(&Acceptor::listen, get_pointer(acceptor_))
+        );
   }
 }
 
@@ -75,7 +79,7 @@ void TcpServer::newConnection(int sockfd, const InetAddress &peerAddr)
   char buf[64];
   snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_);
   ++nextConnId_;
-  string connName = name_ + buf;
+  string connName = name_ + buf;  // 连接名称
 
   LOG_INFO << "TcpServer::newConnection [" << name_
            << "] - new connection [" << connName
