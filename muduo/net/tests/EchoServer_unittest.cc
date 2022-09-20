@@ -13,6 +13,17 @@
 using namespace muduo;
 using namespace muduo::net;
 
+/*
+  single thread
+  0 1 2
+  3 pollerfd
+  4 timerfd
+  5 wakeupfd(eventfd)
+  6 listenfd
+  7 idlefd
+  8,9,10.... connfd
+*/
+
 int numThreads = 0;
 
 class EchoServer

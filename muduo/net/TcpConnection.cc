@@ -325,10 +325,10 @@ void TcpConnection::connectEstablished()
   loop_->assertInLoopThread();
   assert(state_ == kConnecting);
   setState(kConnected);
-  channel_->tie(shared_from_this());
+  channel_->tie(shared_from_this());  // shared_from_this() use_count == 3 ---> 临时对象销毁use_count又变成2
   channel_->enableReading();
 
-  connectionCallback_(shared_from_this());
+  connectionCallback_(shared_from_this());  // use_count == 2
 }
 
 void TcpConnection::connectDestroyed()
@@ -353,7 +353,7 @@ void TcpConnection::handleRead(Timestamp receiveTime)
   {
     messageCallback_(shared_from_this(), &inputBuffer_, receiveTime);
   }
-  else if (n == 0)
+  else if (n == 0)  // 对端关闭
   {
     handleClose();
   }
@@ -414,10 +414,10 @@ void TcpConnection::handleClose()
   setState(kDisconnected);
   channel_->disableAll();
 
-  TcpConnectionPtr guardThis(shared_from_this());
+  TcpConnectionPtr guardThis(shared_from_this()); // use_count == 3
   connectionCallback_(guardThis);
   // must be the last line
-  closeCallback_(guardThis);
+  closeCallback_(guardThis);  // call TcpServer::removeConnection
 }
 
 void TcpConnection::handleError()

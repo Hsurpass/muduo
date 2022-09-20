@@ -43,10 +43,12 @@ void EventLoopThreadPool::start(const ThreadInitCallback& cb)
     snprintf(buf, sizeof buf, "%s%d", name_.c_str(), i);
     EventLoopThread* t = new EventLoopThread(cb, buf);
     threads_.push_back(std::unique_ptr<EventLoopThread>(t));
-    loops_.push_back(t->startLoop());
+    loops_.push_back(t->startLoop()); // 启动EventLoop线程，在进入事件循环之前，会调用cb
   }
+
   if (numThreads_ == 0 && cb)
   {
+    // 只有一个EventLoop, 在这个EventLoop进入事件循环之前，调用cb
     cb(baseLoop_);
   }
 }
@@ -57,12 +59,12 @@ EventLoop* EventLoopThreadPool::getNextLoop()
   assert(started_);
   EventLoop* loop = baseLoop_;
 
-  if (!loops_.empty())
+  if (!loops_.empty())  //如果loops_为0, 则baseloop既处理监听socket也处理连接socket
   {
     // round-robin
     loop = loops_[next_];
     ++next_;
-    if (implicit_cast<size_t>(next_) >= loops_.size())
+    if (implicit_cast<size_t>(next_) >= loops_.size())  // 大于loops_的大小从头开始
     {
       next_ = 0;
     }

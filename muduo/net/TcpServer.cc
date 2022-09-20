@@ -91,15 +91,16 @@ void TcpServer::newConnection(int sockfd, const InetAddress &peerAddr)
                                           connName,
                                           sockfd,
                                           localAddr,
-                                          peerAddr));
-  connections_[connName] = conn;
+                                          peerAddr)); // use_count == 1
+  connections_[connName] = conn;  // use_count == 2
   conn->setConnectionCallback(connectionCallback_);
   conn->setMessageCallback(messageCallback_);
   conn->setWriteCompleteCallback(writeCompleteCallback_);
   conn->setCloseCallback(
       std::bind(&TcpServer::removeConnection, this, _1)); // FIXME: unsafe
   ioLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));
-}
+
+} // conn销毁 use_count == 1
 
 void TcpServer::removeConnection(const TcpConnectionPtr &conn)
 {
@@ -112,10 +113,10 @@ void TcpServer::removeConnectionInLoop(const TcpConnectionPtr &conn)
   loop_->assertInLoopThread();
   LOG_INFO << "TcpServer::removeConnectionInLoop [" << name_
            << "] - connection " << conn->name();
-  size_t n = connections_.erase(conn->name());
+  size_t n = connections_.erase(conn->name());  // erase后 use_count == 2
   (void)n;
   assert(n == 1);
   EventLoop *ioLoop = conn->getLoop();
   ioLoop->queueInLoop(
-      std::bind(&TcpConnection::connectDestroyed, conn));
+      std::bind(&TcpConnection::connectDestroyed, conn)); // conn值传递，use_count == 3
 }

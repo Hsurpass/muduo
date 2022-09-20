@@ -70,12 +70,12 @@ void Channel::handleEvent(Timestamp receiveTime)
 
   if (tied_)
   {
-    guard = tie_.lock();
+    guard = tie_.lock();  // use_count == 2
     if (guard)
     {
       handleEventWithGuard(receiveTime);
-    }
-  }
+    } 
+  }//use_count == 1
   else
   {
     handleEventWithGuard(receiveTime);

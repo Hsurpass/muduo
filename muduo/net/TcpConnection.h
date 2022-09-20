@@ -22,6 +22,12 @@
 
 #include <boost/any.hpp>
 
+/*
+  1.当连接到来，创建一个TcpConnection对象，立刻用shared_ptr来管理，引用计数为1
+  在Channel中维护一个weak_ptr(tie_),将这个shared_ptr对象赋值给tie_,应用计数仍为1
+  2.当连接关闭，在handleEvent,将tie_提升得到一个shared_ptr对象，引用计数就变成了2
+*/
+
 // struct tcp_info is in <netinet/tcp.h>
 struct tcp_info;
 

@@ -42,8 +42,9 @@ namespace muduo
     class Buffer : public muduo::copyable
     {
     public:
-      static const size_t kCheapPrepend = 8;
-      static const size_t kInitialSize = 1024;
+      static const size_t kCheapPrepend = 8; //prependable 初始大小， 预留的
+      static const size_t kInitialSize = 1024;  // writeable的初始大小
+                                                // readable 初始大小为0
 
       explicit Buffer(size_t initialSize = kInitialSize)
           : buffer_(kCheapPrepend + initialSize),
@@ -199,6 +200,7 @@ namespace muduo
         append(static_cast<const char *>(data), len);
       }
 
+      // 确保缓冲区可写空间>=len, 如果不足则扩充
       void ensureWritableBytes(size_t len)
       {
         if (writableBytes() < len)
@@ -371,6 +373,7 @@ namespace muduo
         std::copy(d, d + len, begin() + readerIndex_);
       }
 
+      // 伸缩空间，保留reserve个字节
       void shrink(size_t reserve)
       {
         // FIXME: use vector::shrink_to_fit() in C++ 11 if possible.
