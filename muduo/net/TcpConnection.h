@@ -176,14 +176,32 @@ namespace muduo
 
       ConnectionCallback connectionCallback_;
       MessageCallback messageCallback_;
+      /*
+        大流量：
+        不断生成数据，然后发送conn->send();
+        如果对等方接收不及时, 受到滑动窗口的控制，内核发送缓冲区不足，这个时候，
+        就会将用户数据添加到应用层发送缓冲区(outputbuffer);可能会撑爆outputbuffer
+        解决方法就是：调整发送频率，关注WriteCompleteCallback，所有的数据都发送完，WriteCompleteCallback回调，然后继续发送。
+        低流量:
+          通常不需要关注
+
+        数据发送完毕回调函数，即所有的用户数据都已拷贝到内核缓冲区时回调该函数
+        outputbuffer被清空也会回调该函数，可以理解为低水位标回调函数
+      */
       WriteCompleteCallback writeCompleteCallback_;
-      HighWaterMarkCallback highWaterMarkCallback_;
+      HighWaterMarkCallback highWaterMarkCallback_;// 高水位标回调
       CloseCallback closeCallback_;
       
-      size_t highWaterMark_;
-      Buffer inputBuffer_;
-      Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.
-      boost::any context_;
+      size_t highWaterMark_;  // 高水位标
+      Buffer inputBuffer_;    // 应用层接收缓冲区
+      Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.  // 应用层发送缓冲区
+      /*
+        可变类型解决方案:
+          void*: 这种方法不是类型安全的
+          boost::any: 任意类型的类型安全存储以及安全的取回
+                      在标准库容器中存放不同类型的方法，比如说vector<boost::any>
+      */
+      boost::any context_;  // 绑定一个未知类型的上下文对象
       // FIXME: creationTime_, lastReceiveTime_
       //        bytesReceived_, bytesSent_
     };

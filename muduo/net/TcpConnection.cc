@@ -89,6 +89,7 @@ void TcpConnection::send(const void* data, int len)
   send(StringPiece(static_cast<const char*>(data), len));
 }
 
+// 线程安全，可以跨线程调用
 void TcpConnection::send(const StringPiece& message)
 {
   if (state_ == kConnected)
@@ -148,12 +149,14 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
     return;
   }
   // if no thing in output queue, try writing directly
+  // 通道没有关注可写事件并且发送缓冲区没有数据，直接write
   if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
   {
     nwrote = sockets::write(channel_->fd(), data, len);
     if (nwrote >= 0)
     {
       remaining = len - nwrote;
+      // 写完了，回调writeCompleteCallback_
       if (remaining == 0 && writeCompleteCallback_)
       {
         loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
@@ -174,9 +177,11 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
   }
 
   assert(remaining <= len);
+  // 没有错误，并且还有未写完的数据(说明内核发送缓冲区满，要将未写完的数据添加到output buffer中)
   if (!faultError && remaining > 0)
   {
     size_t oldLen = outputBuffer_.readableBytes();
+    // 如果超过highWaterMark_, 回调highWaterMarkCallback_
     if (oldLen + remaining >= highWaterMark_
         && oldLen < highWaterMark_
         && highWaterMarkCallback_)
@@ -191,6 +196,8 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
   }
 }
 
+// 不可跨线程调用
+// 应用程序想关闭连接，但是有可能正处于发送数据的过程中，output buffer中有数据还没发完，不应该关闭。
 void TcpConnection::shutdown()
 {
   // FIXME: use compare and swap
@@ -365,6 +372,7 @@ void TcpConnection::handleRead(Timestamp receiveTime)
   }
 }
 
+// 内核发送缓冲区有空间了,回调该函数
 void TcpConnection::handleWrite()
 {
   loop_->assertInLoopThread();
@@ -376,14 +384,15 @@ void TcpConnection::handleWrite()
     if (n > 0)
     {
       outputBuffer_.retrieve(n);
-      if (outputBuffer_.readableBytes() == 0)
+      if (outputBuffer_.readableBytes() == 0) // 发送缓冲区已清空
       {
-        channel_->disableWriting();
+        channel_->disableWriting(); // 停止关注可写(POLLOUT)事件，以免出现Busy Loop
         if (writeCompleteCallback_)
         {
+          // 应用层发送缓冲区被清空，就回调writeCompleteCallback_
           loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
         }
-        if (state_ == kDisconnecting)
+        if (state_ == kDisconnecting) // 发送缓冲区被清空并且连接状态是kDisconnecting，要关闭连接
         {
           shutdownInLoop();
         }

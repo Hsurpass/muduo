@@ -67,12 +67,12 @@ namespace muduo
       void resetChannel();
 
       EventLoop *loop_;
-      InetAddress serverAddr_;
+      InetAddress serverAddr_;  // 服务器地址
       bool connect_; // atomic
       States state_; // FIXME: use atomic variable
-      std::unique_ptr<Channel> channel_;
-      NewConnectionCallback newConnectionCallback_;
-      int retryDelayMs_;
+      std::unique_ptr<Channel> channel_;  // connector所对应的channel
+      NewConnectionCallback newConnectionCallback_; // 连接成功cb
+      int retryDelayMs_;  // 重连延迟时间(单位:毫秒)
     };
 
   } // namespace net

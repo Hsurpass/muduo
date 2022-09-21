@@ -110,18 +110,18 @@ namespace muduo
       typedef std::map<string, TcpConnectionPtr> ConnectionMap;
 
       EventLoop *loop_; // the acceptor loop
-      const string ipPort_;
-      const string name_;
+      const string ipPort_; // 服务端口
+      const string name_;   // 服务名
       std::unique_ptr<Acceptor> acceptor_; // avoid revealing Acceptor
       std::shared_ptr<EventLoopThreadPool> threadPool_;
       ConnectionCallback connectionCallback_;
       MessageCallback messageCallback_;
       WriteCompleteCallback writeCompleteCallback_;
-      ThreadInitCallback threadInitCallback_;
+      ThreadInitCallback threadInitCallback_; // IO线程池在进入事件循环前，会回调此函数
       AtomicInt32 started_;
       // always in loop thread
-      int nextConnId_;
-      ConnectionMap connections_;
+      int nextConnId_;    // 下一个连接ID
+      ConnectionMap connections_; // 连接列表
     };
 
   } // namespace net

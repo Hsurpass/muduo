@@ -24,7 +24,7 @@
 using namespace muduo;
 using namespace muduo::net;
 
-namespace
+namespace // 匿名的名字空间
 {
   // 当前线程EventLoop对象指针
   // 线程局部存储， 每个线程有一个

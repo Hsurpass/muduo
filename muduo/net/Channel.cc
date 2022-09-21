@@ -82,6 +82,10 @@ void Channel::handleEvent(Timestamp receiveTime)
   }
 }
 
+/*
+  客户端主动close，服务端收到POLLIN事件
+  服务端主动close, 客户端read==0，然后close, 服务端收到POLLIN&POLLHUP事件
+*/
 void Channel::handleEventWithGuard(Timestamp receiveTime)
 {
   eventHandling_ = true;
