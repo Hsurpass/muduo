@@ -8,7 +8,8 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-MESSAGE(STATUS **************${CMAKE_PROJECT_NAME})
+MESSAGE(STATUS "**************CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+MESSAGE(STATUS "**************CMAKE_PROJECT_NAME: " ${CMAKE_PROJECT_NAME})
 # only build examples if this is the main project
 if(CMAKE_PROJECT_NAME STREQUAL "muduo")
   option(MUDUO_BUILD_EXAMPLES "Build Muduo examples" ON)
@@ -16,7 +17,7 @@ endif()
 message(STATUS ***********MUDUO_BUILD_EXAMPLES:${MUDUO_BUILD_EXAMPLES})
 
 set(CXX_FLAGS
- -g
+#  -g
  # -DVALGRIND
  -DCHECK_PTHREAD_RETURN_VALUE
  -D_FILE_OFFSET_BITS=64
@@ -34,7 +35,15 @@ set(CXX_FLAGS
  # -MMD
  -std=c++11
  -rdynamic
- )
+)
+
+string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+message("BUILD_TYPE: " ${BUILD_TYPE})
+if(BUILD_TYPE STREQUAL "DEBUG")
+  message("CXX_FLAGS APPEND -g")
+  list(APPEND CXX_FLAGS "-g")
+endif()
+
 if(CMAKE_BUILD_BITS EQUAL 32)
   list(APPEND CXX_FLAGS "-m32")
 endif()
@@ -98,12 +107,12 @@ if(THRIFT_COMPILER AND THRIFT_INCLUDE_DIR AND THRIFT_LIBRARY)
   message(STATUS "found thrift")
 endif()
 
+message(STATUS **************${Boost_INCLUDE_DIR})
 message(STATUS **************${Boost_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 MESSAGE(STATUS ************${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 
-string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
 
 add_subdirectory(muduo/base)

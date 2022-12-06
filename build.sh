@@ -1,11 +1,16 @@
 #!/bin/bash
 
+# ./build.sh -j2
+# ./build.sh -j2 install
+# BUILD_TYPE=debug ./build.sh -j2
+# BUILD_TYPE=debug ./build.sh -j2 install
 # BUILD_DIR=./build ./build.sh
 # BUILD_DIR=./build ./build.sh install
 
 # set是把命令打印到屏幕， set -x:开启, set +x:关闭, set -o是查看 (xtrace)，set去追中一段代码的显示情况。
 # 执行set -x后，对整个脚本有效。
 set -x
+echo $*
 
 SOURCE_DIR=`pwd`
 # BUILD_DIR=${BUILD_DIR:-../build}
