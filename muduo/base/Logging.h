@@ -28,15 +28,18 @@ namespace muduo
       NUM_LOG_LEVELS,
     };
 
+    /*
+      @brief: 处理传入的路径
+    */ 
     // compile time calculation of basename of source file
     class SourceFile
     {
     public:
-      template <int N>
-      SourceFile(const char (&arr)[N])
+      template <int N>  // 非类型模板参数 构造函数可隐式转换
+      SourceFile(const char (&arr)[N])  // 匹配字符数组写法 因为是引用 效率更高一点
           : data_(arr),
             size_(N - 1)
-      {
+      { // 找到路径中的文件名， 返回第二个参数最后一次出现的位置的指针
         const char *slash = strrchr(data_, '/'); // builtin function
         if (slash)
         {
@@ -86,11 +89,11 @@ namespace muduo
       void formatTime();
       void finish();
 
-      Timestamp time_;
+      Timestamp time_;  // 提供当前时间 可得到1970年到现在的毫秒数与生成标准时间字符串
       LogStream stream_;
-      LogLevel level_;
-      int line_;
-      SourceFile basename_;
+      LogLevel level_;  // 当前日志级别
+      int line_;  // 日志行数 由__line__得到
+      SourceFile basename_; // 日志所属文件名 由__file__与SourceFile类得到
     };
 
     Impl impl_;

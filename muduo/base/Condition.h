@@ -28,7 +28,7 @@ namespace muduo
 
     void wait()
     {
-      MutexLock::UnassignGuard ug(mutex_);
+      MutexLock::UnassignGuard ug(mutex_);  // holder_ 置为0说明当前线程不持有锁了， 离开作用域的时候holder_重新赋值表明又持有锁
       MCHECK(pthread_cond_wait(&pcond_, mutex_.getPthreadMutex()));
     }
 

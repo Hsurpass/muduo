@@ -15,6 +15,11 @@
 
 using namespace muduo;
 
+/*
+  muduo如何减少文件IO的诀窍就在这里 在setbuffer与writev之前选择了setbuffer,
+  两者均可以减少磁盘IO，setbuffer可以先把数据写到一个用户态缓冲区中, 然后flush写入
+  writev则可提供一次写入多块数据的功能
+*/
 FileUtil::AppendFile::AppendFile(StringArg filename)
     : fp_(::fopen(filename.c_str(), "ae")), // 'e' for O_CLOEXEC
       writtenBytes_(0)
@@ -58,6 +63,10 @@ void FileUtil::AppendFile::flush()
   ::fflush(fp_);
 }
 
+/*
+  这也是一个很有意思的函数，因为写文件内核中有默认的锁fwrite_unlocked是fwrite的不加锁版本，
+  至于这里为什么不加锁呢，原因是这里的写入因为上层函数(logfile, asynclogging)中的锁,已经是线程安全的了
+*/
 size_t FileUtil::AppendFile::write(const char *logline, size_t len)
 {
   // #undef fwrite_unlocked

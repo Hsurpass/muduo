@@ -32,6 +32,7 @@ namespace muduo
       MutexLockGuard lock(mutex_);
       while (queue_.full())
       {
+        printf("[put(const T &x)]****************boundedblockingqueue is full******************\n");
         notFull_.wait();
       }
       assert(!queue_.full());
@@ -44,6 +45,7 @@ namespace muduo
       MutexLockGuard lock(mutex_);
       while (queue_.full())
       {
+        printf("[put(T &&x)]****************boundedblockingqueue is full******************\n");
         notFull_.wait();
       }
       assert(!queue_.full());

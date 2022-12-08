@@ -59,7 +59,11 @@ namespace muduo
       return file.readToString(maxSize, content, fileSize, modifyTime, createTime);
     }
 
+    /*
+      @brief: 写入数据
+    */
     // not thread safe
+    // 这个类隐藏着减少磁盘IO的秘密
     class AppendFile : noncopyable
     {
     public:
@@ -76,9 +80,9 @@ namespace muduo
     private:
       size_t write(const char *logline, size_t len);
 
-      FILE *fp_;
-      char buffer_[64 * 1024];
-      off_t writtenBytes_;
+      FILE *fp_;  // 打开的文件指针
+      char buffer_[64 * 1024];  // 用户态缓冲区 减少磁盘IO的次数
+      off_t writtenBytes_;  // 已写入字节数
     };
 
   } // namespace FileUtil

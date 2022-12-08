@@ -185,7 +185,7 @@ namespace muduo
       }
 
     private:
-      MutexLock &owner_;
+      MutexLock &owner_;  //只是引用，不管理
     };
 
     void unassignHolder()
@@ -208,6 +208,10 @@ namespace muduo
   //   MutexLockGuard lock(mutex_);
   //   return data_.size();
   // }
+  /*
+    注意MutexLockGuard仅仅只是使用了mutex_的引用，其生存期不归MutexLockGuard管理，析构的时候斌没有去释放这个对象，
+    MutexLockGuard和MutexLock这两个类仅仅是关联关系， MutexLockGuard仅仅是使用了MutexLock的lock()和unlock()
+  */
   class SCOPED_CAPABILITY MutexLockGuard : noncopyable
   {
   public:
@@ -231,6 +235,7 @@ namespace muduo
 // Prevent misuse like:
 // MutexLockGuard(mutex_);
 // A tempory object doesn't hold the lock for long! // 临时对象不应该持有锁
+// 遗漏了变量名，产生一个临时对象又马上销毁了，结果没有锁住临界区
 #define MutexLockGuard(x) error "Missing guard object name"
 
 #endif // MUDUO_BASE_MUTEX_H

@@ -169,7 +169,7 @@ namespace muduo
     void staticCheck();
 
     template <typename T>
-    void formatInteger(T);
+    void formatInteger(T);  // 用于数字转字符串 但使用了一个更快的方法，值得在其他项目上借鉴 当然tostring().c_str()也可
 
     Buffer buffer_;
 

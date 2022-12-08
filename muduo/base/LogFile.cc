@@ -20,16 +20,16 @@ LogFile::LogFile(const string &basename,
                  int flushInterval,
                  int checkEveryN)
     : basename_(basename),
-      rollSize_(rollSize),
-      flushInterval_(flushInterval),
-      checkEveryN_(checkEveryN),
-      count_(0),
+      rollSize_(rollSize),  // 一个最大刷新字节数
+      flushInterval_(flushInterval),  // 刷新间隔
+      checkEveryN_(checkEveryN),  // 允许停留在buffer的最大日志条数
+      count_(0),  // 目前写入的条数，最大为checkEveryN_
       mutex_(threadSafe ? new MutexLock : NULL),
-      startOfPeriod_(0),
-      lastRoll_(0),
-      lastFlush_(0)
+      startOfPeriod_(0),  // 记录前一天的时间，单位:秒
+      lastRoll_(0), // 上一次rollfile的时间，单位：秒
+      lastFlush_(0) // 上一次刷新的时间，单位:秒
 {
-  assert(basename.find('/') == string::npos);
+  assert(basename.find('/') == string::npos); // 判断文件名是否合法
   rollFile();
 }
 
@@ -65,24 +65,24 @@ void LogFile::append_unlocked(const char *logline, int len)
 {
   file_->append(logline, len);
 
-  if (file_->writtenBytes() > rollSize_)
+  if (file_->writtenBytes() > rollSize_)  // 已写的字节数是否大于规定的一次最大写入数
   {
     rollFile();
   }
   else
   {
-    ++count_;
+    ++count_; // 记录写入的日志条数
     if (count_ >= checkEveryN_)
     {
       count_ = 0;
       time_t now = ::time(NULL);
       time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
-      if (thisPeriod_ != startOfPeriod_)
+      if (thisPeriod_ != startOfPeriod_)  // 天数不相同, 重新生成文件
       {
         rollFile();
       }
       else if (now - lastFlush_ > flushInterval_)
-      {
+      { // 如果现在和上次刷新缓冲区的时间差超过flushInterval_，进行刷新
         lastFlush_ = now;
         file_->flush();
       }
@@ -93,16 +93,18 @@ void LogFile::append_unlocked(const char *logline, int len)
 bool LogFile::rollFile()
 {
   time_t now = 0;
+  // 可以由now得到标准时间 即Unix时间戳.是自1970/1/1 00:00:00GMT 以来的秒数
   string filename = getLogFileName(basename_, &now);
   // 注意，这里先除kRollPerSeconds_后乘kRollPerSeconds_表示对齐至kRollPerSeconds_整数倍，
   // 也就是时间调整到当天零点
   time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
 
-  if (now > lastRoll_)
+  if (now > lastRoll_)  // 若当前天数大于lastRoll_的天数
   {
     lastRoll_ = now;
     lastFlush_ = now;
-    startOfPeriod_ = start;
+    startOfPeriod_ = start; // 记录上一次rollfile的日期(天)
+    // 换一个文件写日志，即为了保证两天的日志不写在同一个文件中, 而上一天的日志可能并未写到rollSize_大小
     file_.reset(new FileUtil::AppendFile(filename));  //打开一个新的日志文件
     return true;
   }

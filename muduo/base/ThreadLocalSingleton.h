@@ -20,6 +20,7 @@ namespace muduo
     ThreadLocalSingleton() = delete;
     ~ThreadLocalSingleton() = delete;
 
+    // 不需要用线程安全的方式去创建，因为每个线程都有t_value_指针，只需要按照普通方式实现， 如果指针为空就创建对象.
     static T &instance()
     {
       if (!t_value_)
@@ -37,6 +38,7 @@ namespace muduo
     }
 
   private:
+    // 如果是不完全类型的话， 在编译器就会报错  
     static void destructor(void *obj)
     {
       assert(obj == t_value_);
@@ -44,7 +46,7 @@ namespace muduo
       typedef char T_must_be_complete_type[sizeof(T) == 0 ? -1 : 1];
       T_must_be_complete_type dummy;
       (void)dummy;
-      
+
       delete t_value_;
       t_value_ = 0;
     }
@@ -71,6 +73,10 @@ namespace muduo
       pthread_key_t pkey_;
     };
 
+    /*
+      t_value_类型是T*， 加上了一个__thread关键字，表示这个指针每一个线程都有一份， 
+      deleter_用来销毁指针所指向的对象
+    */
     static __thread T *t_value_;
     static Deleter deleter_;
   };

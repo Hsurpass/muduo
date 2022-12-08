@@ -6,6 +6,7 @@
 #include "muduo/base/ThreadPool.h"
 
 #include "muduo/base/Exception.h"
+#include "muduo/base/Logging.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -45,7 +46,7 @@ void ThreadPool::start(int numThreads)
     threads_[i]->start();
   }
 
-  if (numThreads == 0 && threadInitCallback_)
+  if (numThreads == 0 && threadInitCallback_) // numThreads == 0没有子线程，则threadInitCallback_就在主线程执行
   {
     threadInitCallback_();
   }
@@ -72,7 +73,7 @@ size_t ThreadPool::queueSize() const
   return queue_.size();
 }
 
-// 在主线程跑
+// 在生产线程跑
 void ThreadPool::run(Task task)
 {
   if (threads_.empty()) // 如果线程队列是空的(没创建线程)就直接执行
@@ -86,11 +87,11 @@ void ThreadPool::run(Task task)
     while (isFull() && running_)
     {
       notFull_.wait(); // 生产者队列 为满阻塞
-      printf("[run] notFull wait finished\n");
+      LOG_INFO << "[ThreadPool::run] notFull wait finished";
     }
     if (!running_)
     {
-      printf("Thread pool is not running!\n");
+      LOG_INFO << "[ThreadPool::run] Thread pool is not running!";
       return;
     }
     assert(!isFull());
@@ -100,7 +101,7 @@ void ThreadPool::run(Task task)
   }
 }
 
-// 在子线程跑
+// 在消费线程跑
 ThreadPool::Task ThreadPool::take()
 {
   MutexLockGuard lock(mutex_);
@@ -141,7 +142,7 @@ void ThreadPool::runInThread()
       threadInitCallback_();
     }
 
-    while (running_)
+    while (running_)  // 如果线程池中途退出了，正在执行的任务继续执行不受影响，下次while时退出
     {
       Task task(take());
       if (task)

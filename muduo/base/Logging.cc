@@ -113,6 +113,7 @@ class LoggerImpl
 
 using namespace muduo;
 
+// 在Impl的构造中已经完成了每一条日志信息的时间,线程ID,日志等级的信息
 Logger::Impl::Impl(LogLevel level, int savedErrno, const SourceFile &file, int line)
     : time_(Timestamp::now()),
       stream_(),
@@ -132,9 +133,15 @@ Logger::Impl::Impl(LogLevel level, int savedErrno, const SourceFile &file, int l
 
 void Logger::Impl::formatTime()
 {
+  // 得到由1970年到现在时刻的微妙数
   int64_t microSecondsSinceEpoch = time_.microSecondsSinceEpoch();
   time_t seconds = static_cast<time_t>(microSecondsSinceEpoch / Timestamp::kMicroSecondsPerSecond);
   int microseconds = static_cast<int>(microSecondsSinceEpoch % Timestamp::kMicroSecondsPerSecond);
+  
+  /*
+    效率提升的地方, t_lastSecond为__thread变量,
+    意味着如果此次写入与上次写入在同一秒内，不必再生成一次重复的字符串
+  */
   if (seconds != t_lastSecond)
   {
     t_lastSecond = seconds;
@@ -148,6 +155,7 @@ void Logger::Impl::formatTime()
       ::gmtime_r(&seconds, &tm_time); // FIXME TimeZone::fromUtcTime
     }
 
+    // t_time同样是__thread的
     int len = snprintf(t_time, sizeof(t_time), "%4d%02d%02d %02d:%02d:%02d",
                        tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
                        tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);

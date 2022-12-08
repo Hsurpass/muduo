@@ -44,7 +44,7 @@ namespace muduo
       {
         muduo::CurrentThread::t_threadName = "main";
         CurrentThread::tid();
-        pthread_atfork(NULL, NULL, &afterFork);
+        pthread_atfork(NULL, NULL, &afterFork); //只有fork后才会被调用
       }
     };
 
@@ -192,7 +192,11 @@ namespace muduo
     else
     {
       latch_.wait();
-      // printf("wait finished.\n");
+
+      char threadNamebuf[16] = {0};
+      prctl(PR_GET_NAME, threadNamebuf);
+      printf("%s wait finished.\n", threadNamebuf);
+      
       assert(tid_ > 0);
     }
   }
