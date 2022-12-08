@@ -38,6 +38,47 @@ int foo()
   return 0;
 }
 
+void test_singleThread_withoutMutex_speed()
+{
+  Timestamp start(Timestamp::now());
+
+  for (int i = 0; i < kCount; ++i)
+  {
+    g_vec.push_back(i);
+  }
+
+  printf("single thread without lock %f\n", timeDifference(Timestamp::now(), start));
+}
+
+void test_singleThread_withMutex_speed()
+{
+  Timestamp start = Timestamp::now();
+  threadFunc();
+  printf("single thread with lock %f\n", timeDifference(Timestamp::now(), start));
+}
+
+void test_multiThread_withMutex_speed(int kMaxThreads)
+{
+   // 测试1、2、3、4....kMaxThreads个线程加锁解锁处理数据的速度
+  for (int nthreads = 1; nthreads < kMaxThreads; ++nthreads)
+  {
+    std::vector<std::unique_ptr<Thread>> threads;
+    g_vec.clear();
+
+    Timestamp start = Timestamp::now();
+    for (int i = 0; i < nthreads; ++i)
+    {
+      threads.emplace_back(new Thread(&threadFunc));
+      threads.back()->start();
+    }
+    for (int i = 0; i < nthreads; ++i)
+    {
+      threads[i]->join();
+    }
+    printf("%d thread(s) with lock %f\n", nthreads, timeDifference(Timestamp::now(), start));
+  }
+}
+
 int main()
 {
   printf("sizeof pthread_mutex_t: %zd\n", sizeof(pthread_mutex_t));
@@ -55,33 +96,8 @@ int main()
   const int kMaxThreads = 8;
   g_vec.reserve(kMaxThreads * kCount);
 
-  Timestamp start(Timestamp::now());
-  for (int i = 0; i < kCount; ++i)
-  {
-    g_vec.push_back(i);
-  }
+  // test_singleThread_withoutMutex_speed();
+  // test_singleThread_withMutex_speed();
+  test_multiThread_withMutex_speed(kMaxThreads);
 
-  printf("single thread without lock %f\n", timeDifference(Timestamp::now(), start));
-
-  start = Timestamp::now();
-  threadFunc();
-  printf("single thread with lock %f\n", timeDifference(Timestamp::now(), start));
-
-  for (int nthreads = 1; nthreads < kMaxThreads; ++nthreads)
-  {
-    std::vector<std::unique_ptr<Thread>> threads;
-    g_vec.clear();
-    
-    start = Timestamp::now();
-    for (int i = 0; i < nthreads; ++i)
-    {
-      threads.emplace_back(new Thread(&threadFunc));
-      threads.back()->start();
-    }
-    for (int i = 0; i < nthreads; ++i)
-    {
-      threads[i]->join();
-    }
-    printf("%d thread(s) with lock %f\n", nthreads, timeDifference(Timestamp::now(), start));
-  }
 }

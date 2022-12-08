@@ -11,7 +11,7 @@
 class Test
 {
 public:
-  Test(int numThreads) : queue_(20), latch_(numThreads)
+  Test(int numThreads) : queue_(4), latch_(numThreads)
   {
     threads_.reserve(numThreads);
     for (int i = 0; i < numThreads; ++i)
@@ -87,7 +87,7 @@ void testMove()
 
   std::unique_ptr<int> x = queue.take();
   printf("queue size:%zd, capacity:%zd\n", queue.size(), queue.capacity()); // 0, 10
-  printf("took x:%d\n", *x);                                              // 42
+  printf("took x:%d\n", *x);                                                // 42
 
   *x = 123;
   queue.put(std::move(x));
@@ -96,13 +96,13 @@ void testMove()
   std::unique_ptr<int> y;
   y = queue.take();
   printf("queue size:%zd, capacity:%zd\n", queue.size(), queue.capacity()); // 0, 10
-  printf("took y:%d\n", *y);                                              // 123
+  printf("took y:%d\n", *y);                                                // 123
 #endif
 }
 
 void test_Test()
 {
-  Test t(2);
+  Test t(1);
   t.run(10);
   t.joinAll();
 }

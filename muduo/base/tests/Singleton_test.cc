@@ -68,12 +68,11 @@ void test_singleton_Test()
 void test_No_Destroy()
 {
   // TestNoDestroy& tnd = muduo::Singleton<TestNoDestroy>::instance();
-  muduo::Singleton<TestNoDestroy>::instance();
+  muduo::Singleton<TestNoDestroy>::instance();  // 有no_destroy成员函数在程序退出的时候不会调用析构函数，需要手动调用析构释放。
   printf("[main] with valgrind, you should see %zd-byte memory leak.\n", sizeof(TestNoDestroy));
   // tnd.~TestNoDestroy();
   muduo::Singleton<TestNoDestroy>::destroy();
 }
-
 
 int main()
 {

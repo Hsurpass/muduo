@@ -27,7 +27,8 @@ void test(int maxSize)
   LOG_WARN << "Adding";
   pool.run(print);
   pool.run(print);
-  for (int i = 0; i < 100; ++i)
+
+  for (int i = 0; i < 0; ++i)
   {
     char buf[32];
     snprintf(buf, sizeof buf, "task %d", i);
@@ -58,7 +59,7 @@ void testMove()
 void longTask(int num)
 {
   LOG_INFO << "longTask " << num;
-  muduo::CurrentThread::sleepUsec(3000000);
+  muduo::CurrentThread::sleepUsec(10000000);
 }
 
 void test2()
@@ -68,10 +69,12 @@ void test2()
   pool.setMaxQueueSize(5);
   pool.start(3);
 
+  // 只有一把锁，生产线程和消费线程之间会抢锁
   muduo::Thread thread1([&pool]() {
     for (int i = 0; i < 10; ++i)
     {
       pool.run(std::bind(longTask, i));
+      printf("[test2] thread1 i:%d\n", i);
     }
   },
   "thread1");

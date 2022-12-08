@@ -24,7 +24,7 @@ private:
   muduo::string name_;
 };
 
-// 全局变量 同名不同value
+// 全局变量 同名不同value，非POD类型
 muduo::ThreadLocal<Test> testObj1;
 muduo::ThreadLocal<Test> testObj2;
 
@@ -57,18 +57,18 @@ int main()
                                         // testObj2 constructing
                                         // tid=%d, obj1 %p name=
 
-  muduo::Thread t1(threadFunc);         // testObj1 constructing --> tid=%d, obj1 %p name=
-  t1.start();                           // testObj2 constructing --> tid=%d, obj1 %p name=
-  t1.join();                            // tid=%d, obj1 %p name=changed 1
-                                        // tid=%d, obj1 %p name=changed 42
-                                        // testObj1 destructing
-                                        // testObj2 destructing
+  muduo::Thread t1(threadFunc); // testObj1 constructing --> tid=%d, obj1 %p name=
+  t1.start();                   // testObj2 constructing --> tid=%d, obj1 %p name=
+  t1.join();                    // tid=%d, obj1 %p name=changed 1
+                                // tid=%d, obj1 %p name=changed 42
+                                // testObj1 destructing
+                                // testObj2 destructing
 
-  testObj2.value().setName("main two"); 
-  print();                              // tid=%d, obj1 %p name=main one
-                                        // tid=%d, obj1 %p name=main two
-                                        // testObj1 destructing
-                                        // testObj2 destructing
-                                        
+  testObj2.value().setName("main two");
+  print(); // tid=%d, obj1 %p name=main one
+           // tid=%d, obj1 %p name=main two
+           // testObj1 destructing
+           // testObj2 destructing
+
   pthread_exit(0);
 }

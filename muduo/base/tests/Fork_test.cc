@@ -6,7 +6,7 @@
 
 namespace
 {
-  __thread int x = 0; // __thread是进程共享的，当fork之后会复制之前的值
+  __thread int x = 0; // 进程间数据是隔离的，当fork之后会复制之前的值，本进程修改不会改变其他进程的值
 }
 
 void print()
@@ -23,33 +23,42 @@ void print()
 int main()
 {
   printf("parent %d\n", getpid());
-  print();  // x == 0
+  print(); // x == 0
 
   x = 1;
-  print();  // x == 1
+  print(); // x == 1
 
   pid_t p = fork();
   if (p == 0)
   {
-    printf("chlid %d\n", getpid());
+    printf("chlid %d >>>>>>>>>>>>>>>\n", getpid());
     // child
-    print();  // x == 1
+    print(); // x == 1
 
     x = 2;
-    print();  // x == 2
+    print(); // x == 2
+    printf("chlid %d <<<<<<<<<<<<<<<\n", getpid());
 
-    if (fork() == 0)
+    pid_t p1= fork();
+    if (p1 == 0)
     {
-      printf("grandchlid %d\n", getpid()); 
+      printf("grandchlid %d\n", getpid());
 
-      print();  // x == 2
+      print(); // x == 2
       x = 3;
-      print();  // x == 3
+      print(); // x == 3
     }
+    else if(p1 > 0)
+    {
+      sleep(2);
+      printf("grandchlid parent %d\n", getpid());
+      print();  // x == 2
+    }
+
   }
   else
   {
     // parent
-    print();  // x == 1
+    print(); // x == 1
   }
 }

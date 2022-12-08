@@ -26,7 +26,7 @@ private:
   muduo::string name_;
 };
 
-// muduo::ThreadLocal<Test> 是singleton的，不同的线程不同的value(value地址也不一样)
+// muduo::ThreadLocal<Test> 是singleton的(全局变量且只有一个)，不同的线程不同的value(value地址也不一样)
 // #define STL muduo::Singleton<muduo::ThreadLocal<Test> >::instance().value()
 #define TSDInstance muduo::Singleton<muduo::ThreadLocal<Test> >::instance()
 #define STL TSDInstance.value()

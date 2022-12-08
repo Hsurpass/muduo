@@ -7,7 +7,7 @@
 
 void mysleep(int seconds)
 {
-  timespec t = { seconds, 0 };
+  timespec t = {seconds, 0};
   nanosleep(&t, NULL);
 }
 
@@ -29,9 +29,9 @@ void threadFunc3()
 
 class Foo
 {
- public:
+public:
   explicit Foo(double x)
-    : x_(x)
+      : x_(x)
   {
   }
 
@@ -40,12 +40,12 @@ class Foo
     printf("memberFunc, tid=%d, Foo::x_=%f\n", muduo::CurrentThread::tid(), x_);
   }
 
-  void memberFunc2(const std::string& text)
+  void memberFunc2(const std::string &text)
   {
     printf("memberFunc2, tid=%d, Foo::x_=%f, text=%s\n", muduo::CurrentThread::tid(), x_, text.c_str());
   }
 
- private:
+private:
   double x_;
 };
 
@@ -83,7 +83,7 @@ void test_thread4()
   t4.join();
 }
 
-// 子线程比主线程退出的晚----->detach
+// 子线程比主线程退出的晚，主线程没join-----> 子线程detach
 void test_thread5()
 {
   {
@@ -93,13 +93,13 @@ void test_thread5()
   }
 }
 
-// 主线程比子线程退出的晚，但是没join----->detach
+// 子线程比主线程退出的早，主线程没join-----> 子线程detach
 void test_thread6()
 {
   {
     muduo::Thread t6(threadFunc3);
     t6.start();
-    mysleep(3);
+    mysleep(5);
     // t6 destruct later than thread creation.
   }
 }

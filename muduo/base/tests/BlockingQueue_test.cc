@@ -62,7 +62,7 @@ private:
 
     latch_.countDown();
     bool running = true;
-    while (running)
+    while (running) // 不断的取任务，处理，当队列中是stop时，退出
     {
       std::string d(queue_.take());
       printf("[threadFunc] tid=%d, get data = %s, size = %zd\n", muduo::CurrentThread::tid(), d.c_str(), queue_.size());
@@ -102,8 +102,8 @@ int main()
 {
   printf("[main] pid=%d, tid=%d\n", ::getpid(), muduo::CurrentThread::tid());
 
-  // testOneProducerMutilConsumer();
-  testMove();
+  testOneProducerMutilConsumer();
+  // testMove();
 
   printf("[main] number of created threads %d\n", muduo::Thread::numCreated());
 }
