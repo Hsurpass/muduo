@@ -1,7 +1,7 @@
 *.swp
 bazel-*
 compile_commands.json
-build
+build*
 *pb.cc
 *pb.h
 a.out
