@@ -213,8 +213,8 @@ void Connector::handleError()
 // 采用back-off策略重连,即重连时间逐渐延长, 0.5s, 1s, 2s, ...直至30秒
 void Connector::retry(int sockfd)
 {
-  sockets::close(sockfd);
-  setState(kDisconnected);
+  sockets::close(sockfd); // 关闭现有的fd
+  setState(kDisconnected);// 设置为未连接
   if (connect_)
   {
     LOG_INFO << "Connector::retry - Retry connecting to " << serverAddr_.toIpPort()

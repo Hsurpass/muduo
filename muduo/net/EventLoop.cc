@@ -271,7 +271,7 @@ void EventLoop::handleRead()
   另一方面，也避免了死锁(因为Functor可能再次调用queueLoop())
 
   2.由于doPendingFunctors()调用的Functor可能再次调用queueInLoop(cb), 这时queueInLoop()就必须wakeup(),否则新增的cb可能就不能及时调用了。
-  3.muduo没有反复执行doPendingFunctors()直到pendingFunctors_为空，这时有意的，否则IO线程可能陷入死循环，无法处理IO事件。
+  3.muduo没有反复执行doPendingFunctors()直到pendingFunctors_为空，这是有意的，否则IO线程可能陷入死循环，无法处理IO事件。
 */
 void EventLoop::doPendingFunctors()
 {
