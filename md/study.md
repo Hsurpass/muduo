@@ -16,6 +16,38 @@ https://blog.csdn.net/weixin_43705457/article/details/104405603
 
 
 
+# base 库
+
+## Atomic.h
+
+C/C++ 中数值操作，如自加 (n++) 自减 (n- -) 及赋值 (n=2) 操作都不是原子操作。
+
+### gcc提供的常用原子性操作
+
+```c++
+// 原子自增操作，将value更新到*ptr，并返回操作之前*ptr的值
+type __sync_fetch_and_add(type* ptr, type value)
+    
+// 原子比较和交换(设置)操作
+// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值
+type __sync_val_compare_and_swap(type* ptr, type oldval, type newval)
+// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true
+bool __sync_bool_compare_and_swap(type* ptr, type oldval, type newval)
+    
+// 原子赋值操作，将*ptr设置为value,对*ptr加锁, 并返回*ptr操作之前的值.
+type __sync_lock_test_and_set(type* ptr, type value) 
+
+// 使用这些原子性操作，编译的时候需要加-march=cpu-type
+// cpu-type就是cpu体系结构:(如:native, i386, pentium等) 
+```
+
+references: [Gcc内置原子操作__sync_系列函数简述及例程](https://zhuanlan.zhihu.com/p/32303037)
+
+### volatile
+
+[volatile](../../../3github/ElegantTest/test_cpp/keyword/volatile/volatile.md)
+
+
 # muduo线程模型
 
 ## 1.单线程Reactor
