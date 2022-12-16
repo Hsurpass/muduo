@@ -23,8 +23,10 @@ namespace muduo
     {
       string stack;
       const int max_frames = 200;
-      void *frame[max_frames];
-      int nptrs = ::backtrace(frame, max_frames);
+      void *frame[max_frames];  // 指针数组，用于保存堆栈的地址
+      int nptrs = ::backtrace(frame, max_frames); // 实际保存的个数
+
+      // 将地址转换成函数名
       char **strings = ::backtrace_symbols(frame, nptrs); // backtrace_symbols 内部会调用malloc, 返回的指针需要由调用者释放
       if (strings)
       {
@@ -68,7 +70,7 @@ namespace muduo
           stack.push_back('\n');
         }
         free(demangled);
-        free(strings);  // 返回的是二级指针，调用者只需要释放第一级，第二级字符串在常量区
+        free(strings);  // 返回的是二级指针，调用者只需要释放外层指针所指向的资源，内层指针指向的是常量字符串(在常量区)不用释放
       }
       return stack;
     }

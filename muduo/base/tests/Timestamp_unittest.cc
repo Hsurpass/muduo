@@ -55,7 +55,7 @@ void benchmark()
   }
 }
 
-int main()
+void test_tostring()
 {
   Timestamp now(Timestamp::now());
   printf("%s\n", now.toString().c_str());
@@ -63,5 +63,11 @@ int main()
 
   passByValue(now);
   passByConstReference(now);
-  benchmark();
+}
+
+int main()
+{
+  test_tostring();
+
+  // benchmark();
 }

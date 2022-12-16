@@ -31,8 +31,8 @@ namespace muduo
     }
 
   private:
-    string message_;
-    string stack_;
+    string message_;  // 异常信息
+    string stack_;    // 堆栈信息
   };
 
 } // namespace muduo

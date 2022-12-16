@@ -104,12 +104,12 @@ namespace muduo
     int julianDayNumber_;
   };
 
-  inline bool operator<(const Date& x, const Date& y)
+  inline bool operator<(const Date &x, const Date &y)
   {
     return x.julianDayNumber() < y.julianDayNumber();
   }
 
-  inline bool operator==(const Date& x, const Date& y)
+  inline bool operator==(const Date &x, const Date &y)
   {
     return x.julianDayNumber() == y.julianDayNumber();
   }
