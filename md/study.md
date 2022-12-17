@@ -18,6 +18,26 @@ https://blog.csdn.net/weixin_43705457/article/details/104405603
 
 # base 库
 
+## Timestamp.h
+
+### static_assert
+
+### boost::less_than_comparable
+
+只要实现operator<() const 就可自动实现<=,>,>=
+
+less_than_comparable.cpp
+
+### boost::equality_comparable
+
+只要实现operator==() const ,就能自动实现operator !=()const
+
+less_than_comparable.cpp
+
+### gmtime_r
+
+
+
 ## Atomic.h
 
 C/C++ 中数值操作，如自加 (n++) 自减 (n- -) 及赋值 (n=2) 操作都不是原子操作。
@@ -46,6 +66,27 @@ references: [Gcc内置原子操作__sync_系列函数简述及例程](https://zh
 ### volatile
 
 [volatile](../../../3github/ElegantTest/test_cpp/keyword/volatile/volatile.md)
+
+
+
+## Exception.h
+
+### backtrace
+
+栈回溯，保存各个栈帧的地址
+
+### backtrace_symbols
+
+根据地址，转成相应的函数符号。
+
+backtrace_symbols 内部会调用malloc, 返回的指针需要由调用者释放。
+
+![image-20221217105317559](image/image-20221217105317559.png)
+
+### abi::__cxa_demangle
+
+把函数符号转换成函数名
+
 
 
 # muduo线程模型

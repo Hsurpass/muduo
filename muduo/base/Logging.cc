@@ -137,7 +137,7 @@ void Logger::Impl::formatTime()
   int64_t microSecondsSinceEpoch = time_.microSecondsSinceEpoch();
   time_t seconds = static_cast<time_t>(microSecondsSinceEpoch / Timestamp::kMicroSecondsPerSecond);
   int microseconds = static_cast<int>(microSecondsSinceEpoch % Timestamp::kMicroSecondsPerSecond);
-  
+
   /*
     效率提升的地方, t_lastSecond为__thread变量,
     意味着如果此次写入与上次写入在同一秒内，不必再生成一次重复的字符串
@@ -208,7 +208,7 @@ Logger::~Logger()
   impl_.finish();
   const LogStream::Buffer &buf(stream().buffer());
   g_output(buf.data(), buf.length());
-  if (impl_.level_ == FATAL)  // FATAL日志会终止程序
+  if (impl_.level_ == FATAL) // FATAL日志会终止程序
   {
     g_flush();
     abort();

@@ -80,9 +80,9 @@ namespace muduo
     private:
       size_t write(const char *logline, size_t len);
 
-      FILE *fp_;  // 打开的文件指针
-      char buffer_[64 * 1024];  // 用户态缓冲区 减少磁盘IO的次数
-      off_t writtenBytes_;  // 已写入字节数
+      FILE *fp_;               // 打开的文件指针
+      char buffer_[64 * 1024]; // 用户态缓冲区 减少磁盘IO的次数
+      off_t writtenBytes_;     // 已写入字节数
     };
 
   } // namespace FileUtil
