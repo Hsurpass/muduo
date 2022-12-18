@@ -87,6 +87,30 @@ backtrace_symbols 内部会调用malloc, 返回的指针需要由调用者释放
 
 把函数符号转换成函数名
 
+## Logging.h
+
+### Logger类
+
+Logger类时序图:
+
+![image-20221218161609009](image/image-20221218161609009.png)
+
+首先创建一个Logger对象，然后调用stream()方法，返回一个LogStream的对象，再调用LogStream的重载运算符operator <<()输出日志，这是比较宏观的。
+		实际上的实现会更加细一点，在Logger类的内部有嵌套Impl类来负责实际的实现， Logger类就是负责一些日志的级别，是外层的一个日志类；而Impl类是借助LogStream类来输出日志的，LogStream对象重载<<运算符来输出日志。
+		事实上，日志类是先输出到缓冲区**FixedBuffer**，然后再输出到标准输出或文件， 通过g_output函数来指定输出到哪里，借助g_flush函数刷新。因为g_output也是只能输出到指定设备/文件 的缓冲区，g_flush函数刷新一下才能真正到指定位置。
+
+![image-20221218161734176](image/image-20221218161734176.png)
+
+### Impl类
+
+类内私有类
+
+### SourceFile类
+
+类内共有类
+
+
+
 
 
 # muduo线程模型

@@ -26,7 +26,7 @@ namespace muduo
         {
         public:
                 LogFile(const string &basename,
-                        off_t rollSize, // 一次最大刷新字节数
+                        off_t rollSize,         // 一次最大刷新字节数
                         bool threadSafe = true, // 通过对写入操作加锁，来决定是否线程安全
                         int flushInterval = 3,  // 隔多少毫秒刷新一次
                         int checkEveryN = 1024);

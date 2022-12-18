@@ -39,12 +39,14 @@ namespace muduo
       SourceFile(const char (&arr)[N]) // 匹配字符数组写法 因为是引用 效率更高一点
           : data_(arr),
             size_(N - 1)
-      {                                          // 找到路径中的文件名， 返回第二个参数最后一次出现的位置的指针
+      {                                          // 找到路径中的文件名， 返回第二个参数('/')最后一次出现的位置的指针
         const char *slash = strrchr(data_, '/'); // builtin function
         if (slash)
         {
+          // 0 1 2 3 4 5 6 7 8
+          // / m n t / t e s t
           data_ = slash + 1;
-          size_ -= static_cast<int>(data_ - arr);
+          size_ -= static_cast<int>(data_ - arr);   // 9 - (5-0)
         }
       }
 
@@ -63,6 +65,7 @@ namespace muduo
       int size_;
     };
 
+    /************************Logger***************************/
     Logger(SourceFile file, int line);
     Logger(SourceFile file, int line, LogLevel level);
     Logger(SourceFile file, int line, LogLevel level, const char *func);
@@ -79,6 +82,7 @@ namespace muduo
     static void setOutput(OutputFunc);
     static void setFlush(FlushFunc);
     static void setTimeZone(const TimeZone &tz);
+    /************************Logger***************************/
 
   private:
     class Impl

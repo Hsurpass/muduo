@@ -21,6 +21,7 @@ namespace muduo
     const int kSmallBuffer = 4000;
     const int kLargeBuffer = 4000 * 1000;
 
+    // SIZE为非类型参数
     template <int SIZE>
     class FixedBuffer : noncopyable
     {

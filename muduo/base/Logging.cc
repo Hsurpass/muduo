@@ -57,13 +57,13 @@ class LoggerImpl
   Logger::LogLevel g_logLevel = initLogLevel();
 
   const char *LogLevelName[Logger::NUM_LOG_LEVELS] =
-      {
-          "TRACE ",
-          "DEBUG ",
-          "INFO  ",
-          "WARN  ",
-          "ERROR ",
-          "FATAL ",
+  {
+      "TRACE ",
+      "DEBUG ",
+      "INFO  ",
+      "WARN  ",
+      "ERROR ",
+      "FATAL ",
   };
 
   // helper class for known string length at compile time
@@ -111,7 +111,12 @@ class LoggerImpl
 
 } // namespace muduo
 
+
+
 using namespace muduo;
+
+
+/*********************Logger::Impl****************************/
 
 // 在Impl的构造中已经完成了每一条日志信息的时间,线程ID,日志等级的信息
 Logger::Impl::Impl(LogLevel level, int savedErrno, const SourceFile &file, int line)
@@ -181,7 +186,10 @@ void Logger::Impl::finish()
 {
   stream_ << " - " << basename_ << ':' << line_ << '\n';
 }
+/*********************Logger::Impl****************************/
 
+
+/*********************Logger****************************/
 Logger::Logger(SourceFile file, int line)
     : impl_(INFO, 0, file, line)
 {
@@ -234,3 +242,5 @@ void Logger::setTimeZone(const TimeZone &tz)
 {
   g_logTimeZone = tz;
 }
+
+/*********************Logger****************************/
