@@ -224,7 +224,7 @@ void testSydney()
   }
 }
 
-void testUtc()
+void testToUtc_FromUtc()
 {
   const int kRange = 100 * 1000 * 1000;
   for (time_t t = -kRange; t <= kRange; t += 11)
@@ -239,6 +239,7 @@ void testUtc()
       printf("'%s' != '%s'\n", buf1, buf2);
       assert(0);
     }
+
     time_t t3 = TimeZone::fromUtcTime(t2);
     if (t != t3)
     {
@@ -266,10 +267,10 @@ void testFixedTimezone()
 
 int main()
 {
-  testNewYork();
-  testLondon();
-  testSydney();
-  testHongKong();
-  testFixedTimezone();
-  testUtc();
+  // testNewYork();
+  // testLondon();
+  // testSydney();
+  // testHongKong();
+  // testFixedTimezone();
+  testToUtc_FromUtc();
 }

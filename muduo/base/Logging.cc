@@ -126,8 +126,8 @@ Logger::Impl::Impl(LogLevel level, int savedErrno, const SourceFile &file, int l
       line_(line),
       basename_(file)
 {
-  formatTime();
-  CurrentThread::tid();
+  formatTime(); // 格式化时间并输出到了缓冲区中
+  CurrentThread::tid(); // 缓存当前线程的tid
   stream_ << T(CurrentThread::tidString(), CurrentThread::tidStringLength());
   stream_ << T(LogLevelName[level], 6);
   if (savedErrno != 0)

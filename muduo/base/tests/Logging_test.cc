@@ -55,6 +55,8 @@ void logInThread()
 
 void test_muduo_logger()
 {
+  muduo::Logger::setLogLevel(muduo::Logger::ERROR);
+
   LOG_TRACE << "trace";
   LOG_DEBUG << "debug";
   LOG_INFO << "Hello";

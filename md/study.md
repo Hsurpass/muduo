@@ -18,6 +18,28 @@ https://blog.csdn.net/weixin_43705457/article/details/104405603
 
 # base 库
 
+## Date.h
+
+  ```
+int julianDayNumber_;
+  ```
+
+ algorithm and explanation see:
+
+  http://www.faqs.org/faqs/calendars/faq/part2/
+
+  http://blog.csdn.net/Solstice
+
+## TimeZone.h
+
+  ```
+std::shared_ptr<Data> data_;
+  ```
+
+
+
+
+
 ## Timestamp.h
 
 ### static_assert
@@ -99,7 +121,21 @@ Logger类时序图:
 		实际上的实现会更加细一点，在Logger类的内部有嵌套Impl类来负责实际的实现， Logger类就是负责一些日志的级别，是外层的一个日志类；而Impl类是借助LogStream类来输出日志的，LogStream对象重载<<运算符来输出日志。
 		事实上，日志类是先输出到缓冲区**FixedBuffer**，然后再输出到标准输出或文件， 通过g_output函数来指定输出到哪里，借助g_flush函数刷新。因为g_output也是只能输出到指定设备/文件 的缓冲区，g_flush函数刷新一下才能真正到指定位置。
 
+下面是类的调用流程:
+
 ![image-20221218161734176](image/image-20221218161734176.png)
+
+以下是muduo日志库的默认消息格式:
+
+![image-20221220120515899](image/image-20221220120515899.png)
+
+
+
+
+
+
+
+
 
 ### Impl类
 

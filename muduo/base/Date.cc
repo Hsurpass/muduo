@@ -42,7 +42,7 @@ namespace muduo
       return ymd;
     }
   } // namespace detail
-  const int Date::kJulianDayOf1970_01_01 = detail::getJulianDayNumber(1970, 1, 1);
+  const int Date::kJulianDayOf1970_01_01 = detail::getJulianDayNumber(1970, 1, 1);  // 2440588
 } // namespace muduo
 
 using namespace muduo;

@@ -20,15 +20,15 @@ int isLeapYear(int year)
 
 int daysOfMonth(int year, int month)
 {
-  static int days[2][kMonthsOfYear+1] =
-  {
-    { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
-    { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
-  };
+  static int days[2][kMonthsOfYear + 1] =
+      {
+          {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+          {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},  // 闰年2月有29天，月份是从1~12,所以前面要空个0
+      };
   return days[isLeapYear(year)][month];
 }
 
-void passByConstReference(const Date& x)
+void passByConstReference(const Date &x)
 {
   printf("%s\n", x.toIsoString().c_str());
 }
@@ -43,22 +43,26 @@ int main()
   time_t now = time(NULL);
   struct tm t1 = *gmtime(&now);
   struct tm t2 = *localtime(&now);
-  Date someDay(2008, 9, 10);
-  printf("%s\n", someDay.toIsoString().c_str());
-  passByValue(someDay);
-  passByConstReference(someDay);
+
   Date todayUtc(t1);
   printf("%s\n", todayUtc.toIsoString().c_str());
   Date todayLocal(t2);
   printf("%s\n", todayLocal.toIsoString().c_str());
+  assert(todayUtc == todayLocal);
+
+  Date someDay(2008, 9, 10);
+  printf("%s\n", someDay.toIsoString().c_str());
+  passByValue(someDay);
+  passByConstReference(someDay);
+
+  
 
   int julianDayNumber = 2415021;
   int weekDay = 1; // Monday
-
   for (int year = 1900; year < 2500; ++year)
   {
-    assert(Date(year, 3, 1).julianDayNumber() - Date(year, 2, 29).julianDayNumber()
-           == isLeapYear(year));
+    assert(Date(year, 3, 1).julianDayNumber() - Date(year, 2, 29).julianDayNumber() == isLeapYear(year));
+
     for (int month = 1; month <= kMonthsOfYear; ++month)
     {
       for (int day = 1; day <= daysOfMonth(year, month); ++day)
@@ -79,10 +83,9 @@ int main()
         assert(julianDayNumber == d2.julianDayNumber());
 
         ++julianDayNumber;
-        weekDay = (weekDay+1) % 7;
+        weekDay = (weekDay + 1) % 7;
       }
     }
   }
   printf("All passed.\n");
 }
-
