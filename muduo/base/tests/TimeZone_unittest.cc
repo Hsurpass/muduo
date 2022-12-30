@@ -51,14 +51,14 @@ struct TestCase
 
 void test(const TimeZone &tz, TestCase tc)
 {
-  time_t gmt = getGmt(tc.gmt);
+  time_t gmt = getGmt(tc.gmt);  // gmt字符串转化为时间戳
 
   {
-    struct tm local = tz.toLocalTime(gmt);
+    struct tm local = tz.toLocalTime(gmt);  //gmt时间戳转化为本地时间 
     char buf[256];
-    strftime(buf, sizeof buf, "%F %T%z(%Z)", &local);
+    strftime(buf, sizeof buf, "%F %T%z(%Z)", &local); // 本地时间 tm转化为字符串
 
-    if (strcmp(buf, tc.local) != 0 || tc.isdst != local.tm_isdst)
+    if (strcmp(buf, tc.local) != 0 || tc.isdst != local.tm_isdst) // 转化的本地时间和tc.local相比
     {
       printf("WRONG: ");
     }
@@ -66,9 +66,9 @@ void test(const TimeZone &tz, TestCase tc)
   }
 
   {
-    struct tm local = getTm(tc.local);
+    struct tm local = getTm(tc.local);  // tc.local本地字符串通过strptime转化为tm
     local.tm_isdst = tc.isdst;
-    time_t result = tz.fromLocalTime(local);
+    time_t result = tz.fromLocalTime(local);  // tm转换成gmt时间戳
     if (result != gmt)
     {
       struct tm local2 = tz.toLocalTime(result);
@@ -270,7 +270,7 @@ int main()
   // testNewYork();
   // testLondon();
   // testSydney();
-  // testHongKong();
+  testHongKong();
+  // testToUtc_FromUtc();
   // testFixedTimezone();
-  testToUtc_FromUtc();
 }

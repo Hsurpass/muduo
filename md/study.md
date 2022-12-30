@@ -32,11 +32,17 @@ int julianDayNumber_;
 
 ## TimeZone.h
 
-  ```
+  ```c++
+struct TimeZone::Data
+{
+  vector<detail::Transition> transitions;
+  vector<detail::Localtime> localtimes;
+  vector<string> names;
+  string abbreviation;
+};
+
 std::shared_ptr<Data> data_;
   ```
-
-
 
 
 
