@@ -60,10 +60,10 @@ namespace muduo
       EventLoop *baseLoop_; // 与Acceptor所属的EventLoop相同
       string name_;
       bool started_;
-      int numThreads_;  // 线程数
-      int next_;        // 新连接到来，所选择的EventLoop对象下标
+      int numThreads_;                                        // 线程数
+      int next_;                                              // 新连接到来，所选择的EventLoop对象下标
       std::vector<std::unique_ptr<EventLoopThread>> threads_; // IO线程列表
-      std::vector<EventLoop *> loops_;  // EventLoop列表
+      std::vector<EventLoop *> loops_;                        // EventLoop列表
     };
 
   } // namespace net

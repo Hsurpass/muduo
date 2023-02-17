@@ -11,7 +11,10 @@
 
 namespace muduo
 {
-
+  /*
+    object_保存了一个CLASS类型的对象，function_保存了一个不定参数的函数对象，
+    并重载了operator(), 用于安全的将object_作为function_的参数来调用。
+  */
   // A barely usable WeakCallback
 
   template <typename CLASS, typename... ARGS>
@@ -28,7 +31,7 @@ namespace muduo
 
     void operator()(ARGS &&...args) const
     {
-      std::shared_ptr<CLASS> ptr(object_.lock());
+      std::shared_ptr<CLASS> ptr(object_.lock()); // 使用weak_ptr可以保证安全的调用回调函数，也就是调用成员函数时，类对象还存在。
       if (ptr)
       {
         function_(ptr.get(), std::forward<ARGS>(args)...);
