@@ -155,13 +155,13 @@ Logger类时序图:
 
 
 
-# muduo线程模型
+# Reactor线程模型
 
 ## 1.单线程Reactor
 
-单线程reactor----->监听套接字，连接套接字，业务处理都在reactor线程处理
+**单线程reactor(one loop per thread)----->事件的监听，IO的读写，业务计算都在同一个线程处理。**
 
-计算和IO在同一个线程，没有事件的时候，线程等待在select/poll/epoll等函数上，事件到达后由网络库处理IO，再把消息通知客户端代码，网络库负责读写Socket，用户代码负责解码、计算、编码。事件顺序处理，无法保证优先级。这种模式适用于IO密集的应用，不太适合CPU密集的应用；
+没有事件触发的时候，线程等待在select/poll/epoll等函数上，事件到达后进行读IO，解码，计算，编码，写IO等一系列操作。==这种模式适用于IO密集的应用，不太适合CPU密集的应用。==
 
 ![img](image/20210630194953729.png)
 
@@ -173,11 +173,11 @@ Server_basic.cc是一个并发服务器，可以同时服务多个客户端连�
 
 其中最关键的是onMessage()函数，主要用来从缓冲区读取数据，并调用processRequest()去处理请求，其中全部的IO和计算任务都在同一个线程中进行。
 
-## 2.Reactor+线程池
+## 2.单Reactor+线程池
 
-单线程reactor + threadpool ----> 监听套接字，连接套接字都在reactor线程处理，业务计算放到线程池。
+**单线程reactor + threadpool ----> 事件的监听，IO的读写放在reactor线程处理，业务计算放到线程池。**
 
-主线程负责IO，工作线程负责计算，使用固定大小的线程池，$\color{red} {全部的IO工作都在一个Reactor线程完成，}$ $\color{green} {而计算任务交给线程池}$，这种模式适用于计算任务彼此独立，而且IO压力不大的场景，有乱序返回的可能，客户端要根据id来匹配响应。
+主线程负责监听事件，读写IO，线程池中的线程负责业务计算。这种模式适用于计算任务彼此独立，而且IO压力不大的场景，有乱序返回的可能，==客户端要根据id来匹配响应。==
 
 ![img](image/20210630195038604.png)
 
@@ -185,24 +185,21 @@ Server_basic.cc是一个并发服务器，可以同时服务多个客户端连�
 
 与方案1的区别是多了ThreadPool对象，线程池大小由numThreads_指定，然后processRequest()中计算的部分由ThreadPool去执行。这种方案有乱序返回的可能，所以要根据id来匹配响应。
 
-## 3.multiReactors
+## 3.多Reactor(主从Reactor)
 
-multiReactors -----> one loop per thread (一个主reactor线程(accept线程), 其他连接套接字的读写和业务计算在其他reactor线程中运行)。
+**主reactor线程(accept线程) + 子reactor线程：主reactor线程负责监听新连接的到来，然后把新连接分发给子reactor线程， 子reactor线程负责监听事件，读写IO以及业务计算。**
 
-一个main Reactor负责accept连接，然后把连接挂在某个sub Reactor（$\color{red} {muduo采用轮询方式选择sub Reactor}$）中，$\color{green} {该连接的所有操作都在那个sub Reactor所处的线程中完成。}$优点是能保证请求的顺序性，程序的总体处理能力不会随着连接增加而下降，适应性强，所以是muduo的默认多线程模型。
+$\color{red} {muduo采用轮询方式选择sub Reactor}$），$\color{green} {该连接的所有操作都在那个sub Reactor所处的线程中完成。}$优点是能保证请求的顺序性，程序的总体处理能力不会随着连接增加而下降，适应性强，所以是muduo的默认多线程模型。
 
 ![img](image/20210630195106708.png)
 
 代码目录：muduo/examples/sudoku/server_multiloop.cc
 
-这种模式下只需要设置server_.setThreadNum(numThreads_)即可。TcpServer在这种模式下用自己的EventLoop接受新连接，然后用event loop pool里的EventLoop去执行IO；
-------------------------------------------------
-版权声明：本文为CSDN博主「yolo_yyh」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
-原文链接：https://blog.csdn.net/yolo_yyh/article/details/118367979
+这种模式下只需要设置`server_.setThreadNum(numThreads_)`即可。TcpServer在这种模式下用Acceptor的EventLoop接受新连接，然后用EventLoop pool里的EventLoop去处理新连接IO。
 
-## 4.multiReactors + 线程池
+## 4.主从Reactor + 线程池
 
-multiReactors + threadPool ----> one loop per thread +  thread pool (线程池共享，一个主reactor线程(accept线程), 其他连接套接字的读写在每个子reactor线程中运行，每个reactor的业务计算在线程池中运行)
+主reactor线程(accept线程) + 子reactor线程 + threadPool:  **主reactor线程负责监听新连接的到来，然后把新连接分发给子reactor线程， 子reactor线程负责监听事件，读写IO, 业务计算在线程池中处理)**
 
 既有多个Reactor来处理IO，也使用线程池来处理计算，这种模式适合既有突发IO，又有突发计算的应用。
 
@@ -210,8 +207,7 @@ multiReactors + threadPool ----> one loop per thread +  thread pool (线程池�
 
 如何确定使用多少个EventLoop呢？
 
-根据ZeroMQ手册的建议，按照每千兆比特每秒的吞吐量配一个event loop的比例来设置event loop的数目（即muduo::TcpServer::setThreadNum()的数量），所以在编写运行于千兆以太网上的网络程序时，用一个event loop就足以应付网络IO。如果TCP连接有优先级之分，那使用一个event loop不太合适，最好是把高优先级的连接用单独的event loop来处理。
-------------------------------------------------
+根据ZeroMQ手册的建议，按照每千兆比特每秒的吞吐量配一个event loop的比例来设置event loop的数目（即muduo::TcpServer::setThreadNum()的数量），所以在编写运行于千兆以太网上的网络程序时，用一个event loop就足以应付网络IO。==如果TCP连接有优先级之分，那使用一个event loop不太合适，最好是把高优先级的连接用单独的event loop来处理。==
 
 
 # Muduo是什么？
