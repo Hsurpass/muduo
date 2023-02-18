@@ -220,6 +220,18 @@ $\color{red} {muduo采用轮询方式选择sub Reactor}$），$\color{green} {�
 
 同时提供了一个[muduo注释版](https://github.com/chenyahui/AnnotatedCode/tree/master/muduo)，以辅助大家参考学习。
 
+
+
+https://zhuanlan.zhihu.com/p/85101271/
+
+https://blog.csdn.net/qq_36533978/article/details/107975165?spm=1001.2014.3001.5501
+
+https://www.cnblogs.com/fortunely/p/16127237.html#%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1
+
+https://www.cnblogs.com/ailumiyana/p/10087539.html
+
+https://www.cyhone.com/articles/analysis-of-muduo/
+
 # muduo的架构和概念
 
 muduo中类的职责和概念划分的非常清晰，在《Linux多线程服务器端编程》一书的6.3.1章节有详细的介绍。实际上目前很多网络库的接口设计也都受到了muduo的影响，例如360的evpp等。
