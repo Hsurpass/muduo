@@ -15,25 +15,25 @@
 
 #include <errno.h>
 #include <fcntl.h>
-//#include <sys/types.h>
-//#include <sys/stat.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
 #include <unistd.h>
 
 using namespace muduo;
 using namespace muduo::net;
 
-Acceptor::Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reuseport)
-  : loop_(loop),
-    acceptSocket_(sockets::createNonblockingOrDie(listenAddr.family())),
-    acceptChannel_(loop, acceptSocket_.fd()),
-    listening_(false),
-    idleFd_(::open("/dev/null", O_RDONLY | O_CLOEXEC))
+Acceptor::Acceptor(EventLoop *loop, const InetAddress &listenAddr, bool reuseport)
+    : loop_(loop),
+      acceptSocket_(sockets::createNonblockingOrDie(listenAddr.family())),
+      acceptChannel_(loop, acceptSocket_.fd()),
+      listening_(false),
+      idleFd_(::open("/dev/null", O_RDONLY | O_CLOEXEC))
 {
   assert(idleFd_ >= 0);
   acceptSocket_.setReuseAddr(true);
   acceptSocket_.setReusePort(reuseport);
   acceptSocket_.bindAddress(listenAddr);
-  acceptChannel_.setReadCallback( std::bind(&Acceptor::handleRead, this) );
+  acceptChannel_.setReadCallback(std::bind(&Acceptor::handleRead, this));
 }
 
 Acceptor::~Acceptor()
@@ -55,8 +55,8 @@ void Acceptor::handleRead()
 {
   loop_->assertInLoopThread();
   InetAddress peerAddr;
-  
-  //FIXME loop until no more
+
+  // FIXME loop until no more
   int connfd = acceptSocket_.accept(&peerAddr);
   if (connfd >= 0)
   {
@@ -77,7 +77,7 @@ void Acceptor::handleRead()
     // Read the section named "The special problem of
     // accept()ing when you can't" in libev's doc.
     // By Marc Lehmann, author of libev.
-    if (errno == EMFILE)  /* Too many open files */ // 电平触发会一直触发read事件,如果不作处理会一直报errno
+    if (errno == EMFILE) /* Too many open files */ // 电平触发会一直触发read事件,如果不作处理会一直报errno
     {
       ::close(idleFd_); // 关闭空闲的文件描述符， 腾出一个
       idleFd_ = ::accept(acceptSocket_.fd(), NULL, NULL);
@@ -86,4 +86,3 @@ void Acceptor::handleRead()
     }
   }
 }
-
