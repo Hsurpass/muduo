@@ -57,7 +57,7 @@ void Acceptor::handleRead()
   InetAddress peerAddr;
 
   // FIXME loop until no more
-  int connfd = acceptSocket_.accept(&peerAddr);
+  int connfd = acceptSocket_.accept(&peerAddr);// 从全连接队列取出一个连接
   if (connfd >= 0)
   {
     // string hostport = peerAddr.toIpPort();
@@ -71,7 +71,7 @@ void Acceptor::handleRead()
       sockets::close(connfd);
     }
   }
-  else
+  else  // 如果打开的文件描述符达到上限了，则丢弃全连接队列中的连接，避免可读事件一直被触发。
   {
     LOG_SYSERR << "in Acceptor::handleRead";
     // Read the section named "The special problem of

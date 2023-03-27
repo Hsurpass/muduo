@@ -35,10 +35,7 @@ namespace muduo
       Acceptor(EventLoop *loop, const InetAddress &listenAddr, bool reuseport = true);
       ~Acceptor();
 
-      void setNewConnectionCallback(const NewConnectionCallback &cb)
-      {
-        newConnectionCallback_ = cb;
-      }
+      void setNewConnectionCallback(const NewConnectionCallback &cb) { newConnectionCallback_ = cb; }
 
       void listen();
 
