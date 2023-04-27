@@ -42,7 +42,7 @@ namespace muduo
     class Buffer : public muduo::copyable
     {
     public:
-      static const size_t kCheapPrepend = 8; //prependable 初始大小， 预留的
+      static const size_t kCheapPrepend = 8;    //prependable 初始大小， 预留的
       static const size_t kInitialSize = 1024;  // writeable的初始大小
                                                 // readable 初始大小为0
 
@@ -86,6 +86,7 @@ namespace muduo
         return begin() + readerIndex_;
       }
 
+      // 成功返回第一次出现关键字的位置，失败返回NULL
       const char *findCRLF() const
       {
         // FIXME: replace with memmem()?
@@ -122,7 +123,7 @@ namespace muduo
       void retrieve(size_t len)
       {
         assert(len <= readableBytes());
-        if (len < readableBytes())
+        if (len < readableBytes())  // 如果len小于可读数据的长度，就取len这么多数据，否则取出全部数据。
         {
           readerIndex_ += len;
         }
@@ -139,25 +140,10 @@ namespace muduo
         retrieve(end - peek());
       }
 
-      void retrieveInt64()
-      {
-        retrieve(sizeof(int64_t));
-      }
-
-      void retrieveInt32()
-      {
-        retrieve(sizeof(int32_t));
-      }
-
-      void retrieveInt16()
-      {
-        retrieve(sizeof(int16_t));
-      }
-
-      void retrieveInt8()
-      {
-        retrieve(sizeof(int8_t));
-      }
+      void retrieveInt64(){ retrieve(sizeof(int64_t)); }
+      void retrieveInt32() { retrieve(sizeof(int32_t)); }
+      void retrieveInt16() { retrieve(sizeof(int16_t)); }
+      void retrieveInt8() { retrieve(sizeof(int8_t)); }
 
       void retrieveAll()
       {
@@ -373,7 +359,7 @@ namespace muduo
         std::copy(d, d + len, begin() + readerIndex_);
       }
 
-      // 伸缩空间，保留reserve个字节
+      // 缩小空间，保留reserve个字节
       void shrink(size_t reserve)
       {
         // FIXME: use vector::shrink_to_fit() in C++ 11 if possible.
@@ -407,10 +393,10 @@ namespace muduo
 
       void makeSpace(size_t len)
       {
-        if (writableBytes() + prependableBytes() < len + kCheapPrepend)
+        if (writableBytes() + prependableBytes() < len + kCheapPrepend) // 总数据长度要加上预留的8字节
         {
           // FIXME: move readable data
-          buffer_.resize(writerIndex_ + len);
+          buffer_.resize(writerIndex_ + len); // 可以试用reserve，但是prepend的8个字节还要resize一下。
         }
         else
         {
@@ -427,11 +413,11 @@ namespace muduo
       }
 
     private:
-      std::vector<char> buffer_;
-      size_t readerIndex_;
-      size_t writerIndex_;
+      std::vector<char> buffer_;  // 可变长数组
+      size_t readerIndex_;        // 读位置 从这个位置开始读
+      size_t writerIndex_;        // 写位置 从这个位置开始写
 
-      static const char kCRLF[];
+      static const char kCRLF[];  // "\r\n"
     };
 
   } // namespace net
