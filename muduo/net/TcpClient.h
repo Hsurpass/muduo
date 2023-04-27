@@ -80,11 +80,11 @@ namespace muduo
 
       EventLoop *loop_;
       ConnectorPtr connector_; // avoid revealing Connector, 用于主动发起连接
-      const string name_;
+      const string name_; //连接名称
       ConnectionCallback connectionCallback_;   // 连接建立回调
       MessageCallback messageCallback_;         // 消息到来回调
       WriteCompleteCallback writeCompleteCallback_; // 数据发送完毕回调
-      bool retry_;   // atomic  重连，是指连接断开的时候是否重连
+      bool retry_;   // atomic  重连，是指连接建立之后又意外断开的时候是否重连
       bool connect_; // atomic
       // always in loop thread
       int nextConnId_;    // name_ + nextConnId_用于标识一个连接

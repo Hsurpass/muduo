@@ -62,15 +62,10 @@ namespace muduo
       /// - N means a thread pool with N threads, new connections
       ///   are assigned on a round-robin basis.
       void setThreadNum(int numThreads);
-      void setThreadInitCallback(const ThreadInitCallback &cb)
-      {
-        threadInitCallback_ = cb;
-      }
+      void setThreadInitCallback(const ThreadInitCallback &cb) { threadInitCallback_ = cb; }
+      
       /// valid after calling start()
-      std::shared_ptr<EventLoopThreadPool> threadPool()
-      {
-        return threadPool_;
-      }
+      std::shared_ptr<EventLoopThreadPool> threadPool() { return threadPool_; }
 
       /// Starts the server if it's not listening.
       ///
@@ -80,24 +75,15 @@ namespace muduo
 
       /// Set connection callback.
       /// Not thread safe.
-      void setConnectionCallback(const ConnectionCallback &cb)
-      {
-        connectionCallback_ = cb;
-      }
+      void setConnectionCallback(const ConnectionCallback &cb) { connectionCallback_ = cb; }
 
       /// Set message callback.
       /// Not thread safe.
-      void setMessageCallback(const MessageCallback &cb)
-      {
-        messageCallback_ = cb;
-      }
+      void setMessageCallback(const MessageCallback &cb) { messageCallback_ = cb; }
 
       /// Set write complete callback.
       /// Not thread safe.
-      void setWriteCompleteCallback(const WriteCompleteCallback &cb)
-      {
-        writeCompleteCallback_ = cb;
-      }
+      void setWriteCompleteCallback(const WriteCompleteCallback &cb) { writeCompleteCallback_ = cb; }
 
     private:
       /// Not thread safe, but in loop
@@ -114,10 +100,12 @@ namespace muduo
       const string name_;   // 服务名
       std::unique_ptr<Acceptor> acceptor_; // avoid revealing Acceptor
       std::shared_ptr<EventLoopThreadPool> threadPool_;
+      
       ConnectionCallback connectionCallback_;
       MessageCallback messageCallback_;
       WriteCompleteCallback writeCompleteCallback_;
       ThreadInitCallback threadInitCallback_; // IO线程池在进入事件循环前，会回调此函数
+      
       AtomicInt32 started_;
       // always in loop thread
       int nextConnId_;    // 下一个连接ID

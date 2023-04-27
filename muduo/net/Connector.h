@@ -25,8 +25,7 @@ namespace muduo
     class Channel;
     class EventLoop;
 
-    class Connector : noncopyable,
-                      public std::enable_shared_from_this<Connector>
+    class Connector : noncopyable, public std::enable_shared_from_this<Connector>
     {
     public:
       typedef std::function<void(int sockfd)> NewConnectionCallback;

@@ -24,7 +24,7 @@
 
 /*
   1.当连接到来，创建一个TcpConnection对象，立刻用shared_ptr来管理，引用计数为1
-  在Channel中维护一个weak_ptr(tie_),将这个shared_ptr对象赋值给tie_,应用计数仍为1
+  在Channel中维护一个weak_ptr(tie_),将这个shared_ptr对象赋值给tie_，引用计数仍为1
   2.当连接关闭，在handleEvent,将tie_提升得到一个shared_ptr对象，引用计数就变成了2
 */
 
@@ -44,8 +44,7 @@ namespace muduo
     /// TCP connection, for both client and server usage.
     ///
     /// This is an interface class, so don't expose too much details.
-    class TcpConnection : noncopyable,
-                          public std::enable_shared_from_this<TcpConnection>
+    class TcpConnection : noncopyable, public std::enable_shared_from_this<TcpConnection>
     {
     public:
       /// Constructs a TcpConnection with a connected sockfd
@@ -73,46 +72,25 @@ namespace muduo
       void send(const StringPiece &message);
       // void send(Buffer&& message); // C++11
       void send(Buffer *message); // this one will swap data
+      
       void shutdown();            // NOT thread safe, no simultaneous calling
       // void shutdownAndForceCloseAfter(double seconds); // NOT thread safe, no simultaneous calling
       void forceClose();
       void forceCloseWithDelay(double seconds);
       void setTcpNoDelay(bool on);
+      
       // reading or not
       void startRead();
       void stopRead();
       bool isReading() const { return reading_; }; // NOT thread safe, may race with start/stopReadInLoop
 
-      void setContext(const boost::any &context)
-      {
-        context_ = context;
-      }
+      void setContext(const boost::any &context) { context_ = context; }
+      const boost::any &getContext() const { return context_; }
+      boost::any *getMutableContext() { return &context_; }
 
-      const boost::any &getContext() const
-      {
-        return context_;
-      }
-
-      boost::any *getMutableContext()
-      {
-        return &context_;
-      }
-
-      void setConnectionCallback(const ConnectionCallback &cb)
-      {
-        connectionCallback_ = cb;
-      }
-
-      void setMessageCallback(const MessageCallback &cb)
-      {
-        messageCallback_ = cb;
-      }
-
-      void setWriteCompleteCallback(const WriteCompleteCallback &cb)
-      {
-        writeCompleteCallback_ = cb;
-      }
-
+      void setConnectionCallback(const ConnectionCallback &cb) { connectionCallback_ = cb; }
+      void setMessageCallback(const MessageCallback &cb) { messageCallback_ = cb; }
+      void setWriteCompleteCallback(const WriteCompleteCallback &cb) { writeCompleteCallback_ = cb; }
       void setHighWaterMarkCallback(const HighWaterMarkCallback &cb, size_t highWaterMark)
       {
         highWaterMarkCallback_ = cb;
@@ -120,21 +98,11 @@ namespace muduo
       }
 
       /// Advanced interface
-      Buffer *inputBuffer()
-      {
-        return &inputBuffer_;
-      }
-
-      Buffer *outputBuffer()
-      {
-        return &outputBuffer_;
-      }
+      Buffer *inputBuffer() { return &inputBuffer_; }
+      Buffer *outputBuffer() { return &outputBuffer_; }
 
       /// Internal use only.
-      void setCloseCallback(const CloseCallback &cb)
-      {
-        closeCallback_ = cb;
-      }
+      void setCloseCallback(const CloseCallback &cb) { closeCallback_ = cb; }
 
       // called when TcpServer accepts a new connection
       void connectEstablished(); // should be called only once
@@ -177,10 +145,11 @@ namespace muduo
       ConnectionCallback connectionCallback_;
       MessageCallback messageCallback_;
       /*
-        大流量：
+        大流量场景：
         不断生成数据，然后发送conn->send();
-        如果对等方接收不及时, 受到滑动窗口的控制，内核发送缓冲区不足，这个时候，
-        就会将用户数据添加到应用层发送缓冲区(outputbuffer);可能会撑爆outputbuffer
+        如果对等方接收不及时, 受到滑动窗口的控制，内核发送缓冲区不足；
+        这个时候，就会将用户数据添加到应用层发送缓冲区(outputbuffer);可能会撑爆outputbuffer。
+        
         解决方法就是：调整发送频率，关注WriteCompleteCallback，所有的数据都发送完，WriteCompleteCallback回调，然后继续发送。
         低流量:
           通常不需要关注
@@ -188,8 +157,8 @@ namespace muduo
         数据发送完毕回调函数，即所有的用户数据都已拷贝到内核缓冲区时回调该函数
         outputbuffer被清空也会回调该函数，可以理解为低水位标回调函数
       */
-      WriteCompleteCallback writeCompleteCallback_;
-      HighWaterMarkCallback highWaterMarkCallback_;// 高水位标回调
+      WriteCompleteCallback writeCompleteCallback_;// 低水位标回调
+      HighWaterMarkCallback highWaterMarkCallback_;// 高水位标回调，超过高水位标时，为了防止内存被撑爆，可以断开连接
       CloseCallback closeCallback_;
       
       size_t highWaterMark_;  // 高水位标

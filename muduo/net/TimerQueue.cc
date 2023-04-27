@@ -45,10 +45,8 @@ namespace muduo
           microseconds = 100;
         }
         struct timespec ts;
-        ts.tv_sec = static_cast<time_t>(
-            microseconds / Timestamp::kMicroSecondsPerSecond);
-        ts.tv_nsec = static_cast<long>(
-            (microseconds % Timestamp::kMicroSecondsPerSecond) * 1000);
+        ts.tv_sec = static_cast<time_t>(microseconds / Timestamp::kMicroSecondsPerSecond);
+        ts.tv_nsec = static_cast<long>( (microseconds % Timestamp::kMicroSecondsPerSecond) * 1000);
         return ts;
       }
 
@@ -125,7 +123,7 @@ void TimerQueue::cancel(TimerId timerId)
 
 void TimerQueue::addTimerInLoop(Timer *timer)
 {
-  loop_->assertInLoopThread();
+  loop_->assertInLoopThread();  // 添加、处理、删除都是在loop所在线程运行的。
   // 插入一个定时器，有可能会使得最早到期的定时器发生改变
   bool earliestChanged = insert(timer);
 
@@ -138,11 +136,11 @@ void TimerQueue::addTimerInLoop(Timer *timer)
 
 void TimerQueue::cancelInLoop(TimerId timerId)
 {
-  loop_->assertInLoopThread();
+  loop_->assertInLoopThread();  // 添加、处理、删除都是在loop所在线程运行的。
   assert(timers_.size() == activeTimers_.size());
   ActiveTimer timer(timerId.timer_, timerId.sequence_);
   ActiveTimerSet::iterator it = activeTimers_.find(timer);
-  if (it != activeTimers_.end())
+  if (it != activeTimers_.end())  // 如果找到了说明任务还没过期，还在定时任务队列中。如果没找到说明任务到期了，已经从任务队列删除了。
   {
     size_t n = timers_.erase(Entry(it->first->expiration(), it->first));
     assert(n == 1);
@@ -150,7 +148,7 @@ void TimerQueue::cancelInLoop(TimerId timerId)
     delete it->first; // FIXME: no delete please
     activeTimers_.erase(it);
   }
-  else if (callingExpiredTimers_)
+  else if (callingExpiredTimers_) // 如果正在运行到期的定时任务，则暂时把它们放入取消队列。主要作用是取消周期性定时器。
   {
     cancelingTimers_.insert(timer);
   }
@@ -159,7 +157,7 @@ void TimerQueue::cancelInLoop(TimerId timerId)
 
 void TimerQueue::handleRead()
 {
-  loop_->assertInLoopThread();
+  loop_->assertInLoopThread();  // 添加、处理、删除都是在loop所在线程运行的。
   
   Timestamp now(Timestamp::now());
   readTimerfd(timerfd_, now); // 清除该事件，避免一直触发
@@ -189,8 +187,9 @@ std::vector<TimerQueue::Entry> TimerQueue::getExpired(Timestamp now)
 
   Entry sentry(now, reinterpret_cast<Timer *>(UINTPTR_MAX));
   // 返回第一个未到期的Timer的迭代器.
-  // lower_bound会先比较key，再比较value。由于sentry的value值为无穷大，
-  // 所以 end->first总是> now
+  // pair对象有自己比较规则，会先比较key，如果key相等再比较value。
+  // lower_bound会返回第一个大于sentry的迭代器，由于sentry的value值为无穷大，所以 end 总是大于 now
+  // 这么做是为了处理超时时间相同的定时器。所以end->first 是有可能等于now的。
   TimerList::iterator end = timers_.lower_bound(sentry);
   assert(end == timers_.end() || now < end->first);
 

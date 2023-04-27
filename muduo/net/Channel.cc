@@ -91,7 +91,13 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
   eventHandling_ = true;
   LOG_TRACE << reventsToString();
   
-  // revents有POLLHUP事件，没有POLLIN事件
+  // if(revents_ & POLLIN)
+  //   LOG_DEBUG << "POLLINPOLLINPOLLINPOLLINPOLLIN";
+  // if(revents_ & POLLHUP)
+  //   LOG_DEBUG << "POLLHUPPOLLHUPPOLLHUPPOLLHUP";
+
+  // 这个判断的意思是：当有POLLHUP事件的时候一定有POLLIN事件被触发时，不可能只存在POLLHUP，而没有POLLIN
+  // 
   // POLLHUP: Hung up, output only
   if ((revents_ & POLLHUP) && !(revents_ & POLLIN))
   {

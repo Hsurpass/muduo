@@ -63,17 +63,14 @@ TcpClient::TcpClient(EventLoop *loop,
       connect_(true),
       nextConnId_(1)
 {
-  connector_->setNewConnectionCallback(
-      std::bind(&TcpClient::newConnection, this, _1));
+  connector_->setNewConnectionCallback( std::bind(&TcpClient::newConnection, this, _1));
   // FIXME setConnectFailedCallback
-  LOG_INFO << "TcpClient::TcpClient[" << name_
-           << "] - connector " << get_pointer(connector_);
+  LOG_INFO << "TcpClient::TcpClient[" << name_ << "] - connector " << get_pointer(connector_);
 }
 
 TcpClient::~TcpClient()
 {
-  LOG_INFO << "TcpClient::~TcpClient[" << name_
-           << "] - connector " << get_pointer(connector_);
+  LOG_INFO << "TcpClient::~TcpClient[" << name_ << "] - connector " << get_pointer(connector_);
   TcpConnectionPtr conn;
   bool unique = false;
   {
@@ -81,14 +78,14 @@ TcpClient::~TcpClient()
     unique = connection_.unique();
     conn = connection_;
   }
-  if (conn)
+  if (conn) // 已经建立了连接
   {
     assert(loop_ == conn->getLoop());
     // FIXME: not 100% safe, if we are in different thread
     // 重新设置TcpConnection中的closeCallback_为detail::removeConnection
+    // 因为TcpClient::removeConnection函数有重连功能，所以改用detail::removeConnection不让它重连
     CloseCallback cb = std::bind(&detail::removeConnection, loop_, _1);
-    loop_->runInLoop(
-        std::bind(&TcpConnection::setCloseCallback, conn, cb));
+    loop_->runInLoop( std::bind(&TcpConnection::setCloseCallback, conn, cb) );
     if (unique)
     {
       conn->forceClose();
@@ -96,6 +93,7 @@ TcpClient::~TcpClient()
   }
   else
   {
+    // 这种情况说明conenctor处于未连接状态，将connector停止。
     connector_->stop();
     // FIXME: HACK
     loop_->runAfter(1, std::bind(&detail::removeConnector, connector_));
@@ -125,6 +123,7 @@ void TcpClient::disconnect()
   }
 }
 
+// 可能连接尚未建立成功，停止发起连接
 void TcpClient::stop()
 {
   connect_ = false;
@@ -152,8 +151,8 @@ void TcpClient::newConnection(int sockfd)
   conn->setConnectionCallback(connectionCallback_);
   conn->setMessageCallback(messageCallback_);
   conn->setWriteCompleteCallback(writeCompleteCallback_);
-  conn->setCloseCallback(
-      std::bind(&TcpClient::removeConnection, this, _1)); // FIXME: unsafe
+  conn->setCloseCallback(std::bind(&TcpClient::removeConnection, this, _1)); // FIXME: unsafe
+  
   {
     MutexLockGuard lock(mutex_);
     connection_ = conn; // 保存TcpConnection

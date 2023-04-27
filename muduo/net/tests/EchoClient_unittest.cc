@@ -25,10 +25,8 @@ public:
       : loop_(loop),
         client_(loop, listenAddr, "EchoClient" + id)
   {
-    client_.setConnectionCallback(
-        std::bind(&EchoClient::onConnection, this, _1));
-    client_.setMessageCallback(
-        std::bind(&EchoClient::onMessage, this, _1, _2, _3));
+    client_.setConnectionCallback(std::bind(&EchoClient::onConnection, this, _1));
+    client_.setMessageCallback(std::bind(&EchoClient::onMessage, this, _1, _2, _3));
     //client_.enableRetry();
   }
 

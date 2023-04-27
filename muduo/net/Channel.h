@@ -39,23 +39,12 @@ namespace muduo
       Channel(EventLoop *loop, int fd);
       ~Channel();
 
+      // receiveTime: 消息触发时的时间
       void handleEvent(Timestamp receiveTime);
-      void setReadCallback(ReadEventCallback cb)
-      {
-        readCallback_ = std::move(cb);
-      }
-      void setWriteCallback(EventCallback cb)
-      {
-        writeCallback_ = std::move(cb);
-      }
-      void setCloseCallback(EventCallback cb)
-      {
-        closeCallback_ = std::move(cb);
-      }
-      void setErrorCallback(EventCallback cb)
-      {
-        errorCallback_ = std::move(cb);
-      }
+      void setReadCallback(ReadEventCallback cb) { readCallback_ = std::move(cb); }
+      void setWriteCallback(EventCallback cb) { writeCallback_ = std::move(cb); }
+      void setCloseCallback(EventCallback cb) { closeCallback_ = std::move(cb); }
+      void setErrorCallback(EventCallback cb) { errorCallback_ = std::move(cb); }
 
       /// Tie this channel to the owner object managed by shared_ptr,
       /// prevent the owner object being destroyed in handleEvent.
@@ -118,17 +107,17 @@ namespace muduo
       static const int kReadEvent;
       static const int kWriteEvent;
 
-      EventLoop *loop_;   // 所属eventloop
-      const int fd_;      // 文件描述符，但不负责关闭该文件描述符，Socket类所持有
-      int events_;        // 关注的事件
-      int revents_; // it's the received event types of epoll or poll
-                    // poll/epoll返回的事件
-      int index_;   // used by Poller.  表示在poll的事件数组中的序号. epoll中表示事件状态
-      bool logHup_; // for POLLHUP
+      EventLoop *loop_; // 所属eventloop
+      const int fd_;    // 文件描述符，但不负责关闭该文件描述符，Socket类所持有
+      int events_;      // 关注的事件
+      int revents_;     // it's the received event types of epoll or poll
+                        // poll/epoll返回的事件
+      int index_;       // used by Poller.  表示在poll的事件数组中的序号. epoll中表示事件状态
+      bool logHup_;     // for POLLHUP
 
       std::weak_ptr<void> tie_;
       bool tied_;
-      bool eventHandling_;  // 是否正在处理事件
+      bool eventHandling_; // 是否正在处理事件
       bool addedToLoop_;
       ReadEventCallback readCallback_;
       EventCallback writeCallback_;

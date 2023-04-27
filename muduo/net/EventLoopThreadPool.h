@@ -21,52 +21,52 @@
 namespace muduo
 {
 
-  namespace net
-  {
-
-    class EventLoop;
-    class EventLoopThread;
-
-    class EventLoopThreadPool : noncopyable
+    namespace net
     {
-    public:
-      typedef std::function<void(EventLoop *)> ThreadInitCallback;
 
-      EventLoopThreadPool(EventLoop *baseLoop, const string &nameArg);
-      ~EventLoopThreadPool();
-      void setThreadNum(int numThreads) { numThreads_ = numThreads; }
-      void start(const ThreadInitCallback &cb = ThreadInitCallback());
+        class EventLoop;
+        class EventLoopThread;
 
-      // valid after calling start()
-      /// round-robin
-      EventLoop *getNextLoop();
+        class EventLoopThreadPool : noncopyable
+        {
+        public:
+            typedef std::function<void(EventLoop *)> ThreadInitCallback;
 
-      /// with the same hash code, it will always return the same EventLoop
-      EventLoop *getLoopForHash(size_t hashCode);
+            EventLoopThreadPool(EventLoop *baseLoop, const string &nameArg);
+            ~EventLoopThreadPool();
+            void setThreadNum(int numThreads) { numThreads_ = numThreads; }
+            void start(const ThreadInitCallback &cb = ThreadInitCallback());
 
-      std::vector<EventLoop *> getAllLoops();
+            // valid after calling start()
+            /// round-robin
+            EventLoop *getNextLoop();
 
-      bool started() const
-      {
-        return started_;
-      }
+            /// with the same hash code, it will always return the same EventLoop
+            EventLoop *getLoopForHash(size_t hashCode);
 
-      const string &name() const
-      {
-        return name_;
-      }
+            std::vector<EventLoop *> getAllLoops();
 
-    private:
-      EventLoop *baseLoop_; // 与Acceptor所属的EventLoop相同
-      string name_;
-      bool started_;
-      int numThreads_;                                        // 线程数
-      int next_;                                              // 新连接到来，所选择的EventLoop对象下标
-      std::vector<std::unique_ptr<EventLoopThread>> threads_; // IO线程列表
-      std::vector<EventLoop *> loops_;                        // EventLoop列表
-    };
+            bool started() const
+            {
+                return started_;
+            }
 
-  } // namespace net
+            const string &name() const
+            {
+                return name_;
+            }
+
+        private:
+            EventLoop *baseLoop_; // 与Acceptor所属的EventLoop相同
+            string name_;
+            bool started_;
+            int numThreads_;    // 线程数
+            int next_;  // 新连接到来，所选择的EventLoop对象下标
+            std::vector<std::unique_ptr<EventLoopThread>> threads_; // IO线程列表
+            std::vector<EventLoop *> loops_;                        // EventLoop列表
+        };
+
+    } // namespace net
 } // namespace muduo
 
 #endif // MUDUO_NET_EVENTLOOPTHREADPOOL_H

@@ -62,7 +62,7 @@ private:
     if (msg == "exit\n")
     {
       conn->send("bye\n");
-      conn->shutdown();
+      conn->shutdown(); // shutdown可能和send不在同一线程中执行，所以shutdown里面要进行isWriting判断。
     }
     if (msg == "quit\n")
     {

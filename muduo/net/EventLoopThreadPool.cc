@@ -59,12 +59,14 @@ EventLoop *EventLoopThreadPool::getNextLoop()
   assert(started_);
   EventLoop *loop = baseLoop_;
 
-  if (!loops_.empty()) // 如果loops_为0, 则baseloop既处理监听socket也处理连接socket
+  // 如果loops_为0, 则baseloop既处理监听socket也处理连接socket
+  // 如果不为空，按照round-robin（RR，轮叫）的调度方式选择一个EventLoop
+  if (!loops_.empty())
   {
     // round-robin
     loop = loops_[next_];
     ++next_;
-    if (implicit_cast<size_t>(next_) >= loops_.size()) // 大于loops_的大小从头开始
+    if (implicit_cast<size_t>(next_) >= loops_.size()) // 大于loops_的大小从头开始(均匀分配)
     {
       next_ = 0;
     }

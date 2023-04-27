@@ -54,9 +54,9 @@ namespace muduo
       // This requires heterogeneous comparison lookup (N3465) from C++14
       // so that we can find an T* in a set<unique_ptr<T>>.
       typedef std::pair<Timestamp, Timer *> Entry;
-      typedef std::set<Entry> TimerList;  // 按照时间戳排序
+      typedef std::set<Entry> TimerList;  // 按照pair的规则排序，先比较时间戳再比较指针
       typedef std::pair<Timer *, int64_t> ActiveTimer;
-      typedef std::set<ActiveTimer> ActiveTimerSet; // 按照地址排序
+      typedef std::set<ActiveTimer> ActiveTimerSet; // 按照pair的operator<排序，先比较指针再比较时间戳。
 
       // 以下成员函数只可能在其所属的I/O线程中调用，因而不必加锁。
       // 服务器性能杀手之一是锁竞争，所以要尽可能少用锁

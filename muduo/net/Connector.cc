@@ -26,7 +26,7 @@ Connector::Connector(EventLoop* loop, const InetAddress& serverAddr)
     serverAddr_(serverAddr),
     connect_(false),
     state_(kDisconnected),
-    retryDelayMs_(kInitRetryDelayMs)
+    retryDelayMs_(kInitRetryDelayMs)  // 初始值0.5秒
 {
   LOG_DEBUG << "ctor[" << this << "]";
 }
@@ -58,6 +58,7 @@ void Connector::startInLoop()
   }
 }
 
+// 可能被其他线程调用
 void Connector::stop()
 {
   connect_ = false;
@@ -72,7 +73,7 @@ void Connector::stopInLoop()
   {
     setState(kDisconnected);
     int sockfd = removeAndResetChannel();
-    retry(sockfd);  // 这里并非要重连，只是调用sockets::close(sockfd)
+    retry(sockfd);  // 这里并非要重连，只是调用sockets::close(sockfd)，因为connect_被置为false了。
   }
 }
 
@@ -117,11 +118,12 @@ void Connector::connect()
   }
 }
 
+// 不能跨线程调用
 void Connector::restart()
 {
   loop_->assertInLoopThread();
   setState(kDisconnected);
-  retryDelayMs_ = kInitRetryDelayMs;
+  retryDelayMs_ = kInitRetryDelayMs;  // 重置重连时间
   connect_ = true;
   startInLoop();
 }
@@ -130,24 +132,25 @@ void Connector::connecting(int sockfd)
 {
   setState(kConnecting);
   assert(!channel_);
-  channel_.reset(new Channel(loop_, sockfd));
-  channel_->setWriteCallback(
-      std::bind(&Connector::handleWrite, this)); // FIXME: unsafe
-  channel_->setErrorCallback(
-      std::bind(&Connector::handleError, this)); // FIXME: unsafe
+  channel_.reset(new Channel(loop_, sockfd)); // 重置channel_
+  channel_->setWriteCallback(std::bind(&Connector::handleWrite, this)); // FIXME: unsafe
+  channel_->setErrorCallback(std::bind(&Connector::handleError, this)); // FIXME: unsafe
 
   // channel_->tie(shared_from_this()); is not working,
   // as channel_ is not managed by shared_ptr
   channel_->enableWriting();  // 关注可写事件
 }
 
+// 该函数可能是其他线程调用的，resetChannel如果不放在当前loop线程执行，在其他线程可能被置空，然后当前线程执行removeAndResetChannel就会崩溃
+// 就是说resetChannel不放在loop线程中执行不是线程安全的。
 int Connector::removeAndResetChannel()
 {
-  channel_->disableAll();
-  channel_->remove(); // 从poller中移除关注
+  channel_->disableAll(); // 移除所有事件
+  channel_->remove(); // 从poller中移除fd
   int sockfd = channel_->fd();
   // Can't reset channel_ here, because we are inside Channel::handleEvent
-  // 不能在这里重置channel_，因为正在调用channel::handleEvent, 加入到loop_这个队列中
+  // 原因1.不能在这里重置channel_，因为可能正在调用channel::handleEvent-->Connector::handleWrite, 所以就加入到loop_这个队列中, 在下一轮重置。
+  // 原因2.stop --> stopInLoop 这个就属于在当前IO线程中执行pendingFunctors_时，Functor函数中又调用了queueInLoop 的情况。
   loop_->queueInLoop(std::bind(&Connector::resetChannel, this)); // FIXME: unsafe
   return sockfd;
 }
@@ -163,14 +166,13 @@ void Connector::handleWrite()
 
   if (state_ == kConnecting)
   {
-    int sockfd = removeAndResetChannel(); // 从poller中移除，并将channel置空
+    int sockfd = removeAndResetChannel(); // 触发了可写事件，要么是连接成功了，要么是发生了错误；从poller中移除，并将channel置空，停止监听写事件并停止监听fd(因为可写事件会一直触发)。
     // socket可写并不意味着连接一定成功
     // 还需要用getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen)再次确认一下
     int err = sockets::getSocketError(sockfd);
     if (err)  // 有错误
     {
-      LOG_WARN << "Connector::handleWrite - SO_ERROR = "
-               << err << " " << strerror_tl(err);
+      LOG_WARN << "Connector::handleWrite - SO_ERROR = " << err << " " << strerror_tl(err);
       retry(sockfd);  // 重连
     }
     else if (sockets::isSelfConnect(sockfd))  // 自连接
@@ -178,7 +180,7 @@ void Connector::handleWrite()
       LOG_WARN << "Connector::handleWrite - Self connect";
       retry(sockfd);  // 重连
     }
-    else  // 连接成功
+    else  // 连接成功，则调用cb
     {
       setState(kConnected);
       if (connect_)
@@ -219,9 +221,9 @@ void Connector::retry(int sockfd)
   {
     LOG_INFO << "Connector::retry - Retry connecting to " << serverAddr_.toIpPort()
              << " in " << retryDelayMs_ << " milliseconds. ";
-    // 注册一个定时操作，重连
-    loop_->runAfter(retryDelayMs_/1000.0,
-                    std::bind(&Connector::startInLoop, shared_from_this()));
+    
+    // 添加一个单次定时任务，返回错误重连，直到达到最大重连时间。
+    loop_->runAfter(retryDelayMs_/1000.0, std::bind(&Connector::startInLoop, shared_from_this()) );
     retryDelayMs_ = std::min(retryDelayMs_ * 2, kMaxRetryDelayMs);
   }
   else
