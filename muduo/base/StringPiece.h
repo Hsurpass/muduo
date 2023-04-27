@@ -125,12 +125,14 @@ namespace muduo
 
     char operator[](int i) const { return ptr_[i]; }
 
+    // 取出前缀
     void remove_prefix(int n)
     {
       ptr_ += n;
       length_ -= n;
     }
 
+    // 取出后缀
     void remove_suffix(int n)
     {
       length_ -= n;
