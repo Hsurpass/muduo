@@ -24,7 +24,7 @@ void threadFunc2(int x)
 void threadFunc3()
 {
   printf("threadFunc3, tid=%d\n", muduo::CurrentThread::tid());
-  mysleep(1);
+  mysleep(3);
 }
 
 class Foo
@@ -91,6 +91,8 @@ void test_thread5()
     t5.start();
     // t5 may destruct eariler than thread creation.
   }
+
+  mysleep(10);
 }
 
 // 子线程比主线程退出的早，主线程没join-----> 子线程detach
@@ -112,8 +114,8 @@ int main()
   // test_thread2();
   // test_thread3();
   // test_thread4();
-  // test_thread5();
-  test_thread6();
+  test_thread5();
+  // test_thread6();
 
   printf("number of created threads %d\n", muduo::Thread::numCreated());
 }
